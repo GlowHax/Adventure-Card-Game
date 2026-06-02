@@ -356,7 +356,7 @@ Transform:
   m_GameObject: {fileID: 127189392}
   serializedVersion: 2
   m_LocalRotation: {x: 0.64278764, y: 0, z: 0, w: 0.7660445}
-  m_LocalPosition: {x: 6.05744, y: 5.4700003, z: 1.848947}
+  m_LocalPosition: {x: 6.05744, y: 4.857, z: 1.957}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -448,8 +448,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 204329285}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.57357645, y: 0, z: 0, w: 0.81915206}
-  m_LocalPosition: {x: 4.20744, y: 6.27, z: 0.7368665}
+  m_LocalRotation: {x: 0.64278764, y: 0, z: 0, w: 0.7660445}
+  m_LocalPosition: {x: 4.20744, y: 7.77, z: 1.4433951}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -556,7 +556,7 @@ Transform:
   m_GameObject: {fileID: 231713644}
   serializedVersion: 2
   m_LocalRotation: {x: 0.64278764, y: 0, z: 0, w: 0.7660445}
-  m_LocalPosition: {x: 4.20744, y: 5.4700003, z: 2.198947}
+  m_LocalPosition: {x: 4.20744, y: 4.857, z: 2.307}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -624,6 +624,89 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1724939211}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &484027265
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 484027267}
+  - component: {fileID: 484027266}
+  - component: {fileID: 484027270}
+  - component: {fileID: 484027269}
+  - component: {fileID: 484027268}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &484027266
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484027265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe26f8cbe399e054a84e72afb9f73675, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Managers.DeckManager
+--- !u!4 &484027267
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484027265}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &484027268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484027265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec690e51407970146bfeb24bb6fc050e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Managers.CombatManager
+--- !u!114 &484027269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484027265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ab058e9474df4f41b44aa2a3ff13ccc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Managers.InspectionManager
+--- !u!114 &484027270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484027265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acf272e358ad46749a069f78f1e475c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Managers.InputManager
 --- !u!1 &627989663
 GameObject:
   m_ObjectHideFlags: 0
@@ -1094,7 +1177,7 @@ Transform:
   m_GameObject: {fileID: 1607610261}
   serializedVersion: 2
   m_LocalRotation: {x: 0.64278764, y: 0, z: 0, w: 0.7660445}
-  m_LocalPosition: {x: 4.20744, y: 5.4700003, z: 0.8489471}
+  m_LocalPosition: {x: 4.20744, y: 4.857, z: 0.9570001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1220,7 +1303,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 261c247969ae5a1428ad61cf4a5f8ee0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Managers.TableLayoutManager
-  cardPrefab: {fileID: 5545229234602117284, guid: e01f5401795f8be49aabb5ad6032dcce, type: 3}
+  cardPrefab: {fileID: 5545229234602117284, guid: 268dc4eaf69fc40489c27a791a56972a, type: 3}
+  monsterPrefab: {fileID: 5545229234602117284, guid: 34f02404179083f45913f039db08c511, type: 3}
+  memberPrefab: {fileID: 5545229234602117284, guid: 268dc4eaf69fc40489c27a791a56972a, type: 3}
+  testMembers:
+  - {fileID: 11400000, guid: e34827047786c734585458cbc5ca1bfd, type: 2}
+  testItems: []
+  testMonsters:
+  - {fileID: 11400000, guid: 5b5b771f711e7584fb1d784c4d872135, type: 2}
   memberSlots:
   - {fileID: 32748331}
   - {fileID: 718923204}
@@ -1250,3 +1340,4 @@ SceneRoots:
   - {fileID: 231713646}
   - {fileID: 127189394}
   - {fileID: 1724939211}
+  - {fileID: 484027267}

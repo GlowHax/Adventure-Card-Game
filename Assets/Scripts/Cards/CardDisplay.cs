@@ -49,21 +49,21 @@ namespace AdventureCardGame.Cards
             if (cardData is MemberCardData member)
             {
                 if (descriptionText != null) descriptionText.text = member.abilityDescription;
-                if (speedContainer != null) { speedContainer.SetActive(true); speedText.text = member.baseSpeed.ToString(); }
-                if (strengthContainer != null) { strengthContainer.SetActive(true); strengthText.text = member.baseStrength.ToString(); }
-                if (costContainer != null) { costContainer.SetActive(true); costText.text = member.honorCost.ToString(); }
+                if (speedContainer != null) { speedContainer.SetActive(true); if (speedText != null) speedText.text = member.baseSpeed.ToString(); }
+                if (strengthContainer != null) { strengthContainer.SetActive(true); if (strengthText != null) strengthText.text = member.baseStrength.ToString(); }
+                if (costContainer != null) { costContainer.SetActive(true); if (costText != null) costText.text = member.honorCost.ToString(); }
             }
             else if (cardData is MonsterCardData monster)
             {
                 if (descriptionText != null) descriptionText.text = monster.passiveEffectDescription;
-                if (speedContainer != null) { speedContainer.SetActive(true); speedText.text = monster.speed.ToString(); }
-                if (strengthContainer != null) { strengthContainer.SetActive(true); strengthText.text = monster.strength.ToString(); }
-                if (healthContainer != null) { healthContainer.SetActive(true); healthText.text = monster.healthPoints.ToString(); }
+                if (speedContainer != null) { speedContainer.SetActive(true); if (speedText != null) speedText.text = monster.speed.ToString(); }
+                if (strengthContainer != null) { strengthContainer.SetActive(true); if (strengthText != null) strengthText.text = monster.strength.ToString(); }
+                if (healthContainer != null) { healthContainer.SetActive(true); if (healthText != null) healthText.text = monster.healthPoints.ToString(); }
             }
             else if (cardData is ItemCardData item)
             {
-                if (speedContainer != null) { speedContainer.SetActive(true); speedText.text = "+" + item.speedBonus.ToString(); }
-                if (strengthContainer != null) { strengthContainer.SetActive(true); strengthText.text = "+" + item.strengthBonus.ToString(); }
+                if (speedContainer != null) { speedContainer.SetActive(true); if (speedText != null) speedText.text = "+" + item.speedBonus.ToString(); }
+                if (strengthContainer != null) { strengthContainer.SetActive(true); if (strengthText != null) strengthText.text = "+" + item.strengthBonus.ToString(); }
             }
             else if (cardData is EventCardData ev)
             {
