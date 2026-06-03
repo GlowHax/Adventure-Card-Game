@@ -1,0 +1,46 @@
+using UnityEngine;
+using Unity.Cinemachine;
+
+namespace AdventureCardGame.Managers
+{
+    public class CameraManager : MonoBehaviour
+    {
+        public static CameraManager Instance { get; private set; }
+
+        [Header("Virtual Cameras")]
+        public CinemachineCamera camCombatView;
+        public CinemachineCamera camEncounter;
+        public CinemachineCamera camDiceRoll;
+
+        private void Awake()
+        {
+            if (Instance == null) Instance = this;
+            else Destroy(gameObject);
+        }
+
+        public void SwitchToCombatView()
+        {
+            SetAllCamerasPriority(0);
+            if (camCombatView != null) camCombatView.Priority = 10;
+        }
+
+        public void SwitchToEncounter()
+        {
+            SetAllCamerasPriority(0);
+            if (camEncounter != null) camEncounter.Priority = 10;
+        }
+
+        public void SwitchToDiceRoll()
+        {
+            SetAllCamerasPriority(0);
+            if (camDiceRoll != null) camDiceRoll.Priority = 10;
+        }
+
+        private void SetAllCamerasPriority(int priority)
+        {
+            if (camCombatView != null) camCombatView.Priority = priority;
+            if (camEncounter != null) camEncounter.Priority = priority;
+            if (camDiceRoll != null) camDiceRoll.Priority = priority;
+        }
+    }
+}

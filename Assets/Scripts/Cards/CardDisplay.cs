@@ -7,6 +7,7 @@ namespace AdventureCardGame.Cards
     public class CardDisplay : MonoBehaviour
     {
         public CardData cardData;
+        public int currentHealth;
 
         [Header("UI Elements")]
         public Image artworkImage;
@@ -29,6 +30,10 @@ namespace AdventureCardGame.Cards
         public void Setup(CardData data)
         {
             cardData = data;
+            if (data is MonsterCardData monster)
+            {
+                currentHealth = monster.healthPoints;
+            }
             UpdateDisplay();
         }
 
@@ -58,7 +63,7 @@ namespace AdventureCardGame.Cards
                 if (descriptionText != null) descriptionText.text = monster.passiveEffectDescription;
                 if (speedContainer != null) { speedContainer.SetActive(true); if (speedText != null) speedText.text = monster.speed.ToString(); }
                 if (strengthContainer != null) { strengthContainer.SetActive(true); if (strengthText != null) strengthText.text = monster.strength.ToString(); }
-                if (healthContainer != null) { healthContainer.SetActive(true); if (healthText != null) healthText.text = monster.healthPoints.ToString(); }
+                if (healthContainer != null) { healthContainer.SetActive(true); if (healthText != null) healthText.text = currentHealth.ToString(); }
             }
             else if (cardData is ItemCardData item)
             {

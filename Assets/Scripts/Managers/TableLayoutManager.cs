@@ -42,11 +42,12 @@ namespace AdventureCardGame.Managers
             // Discard Stack (Face up, 3 cards thick)
             SpawnTestCard(discardSlot, "Discard_Stack", null, false, 3, 0);
             
-            // Encounter Card (On top of discard pile)
-            Cards.CardData encounterData = (testMonsters != null && testMonsters.Length > 0) ? testMonsters[0] : null;
-            SpawnTestCard(discardSlot, "Encounter_Active", encounterData, false, 1, 3);
+            // Encounter Card (will be drawn when clicking deck)
+            // Cards.CardData encounterData = (testMonsters != null && testMonsters.Length > 0) ? testMonsters[0] : null;
+            // SpawnTestCard(discardSlot, "Encounter_Active", encounterData, false, 1, 3);
             
-            SpawnTestCards(shopSlots, "Shop_Offer_", testMembers);
+            // Shop cards should only spawn when a Shop encounter is active
+            // SpawnTestCards(shopSlots, "Shop_Offer_", testMembers);
         }
 
         private void SpawnTestCards(Transform[] slots, string prefix, Cards.CardData[] possibleData = null)
@@ -96,7 +97,39 @@ namespace AdventureCardGame.Managers
                 {
                     Canvas canvas = card.GetComponentInChildren<Canvas>();
                     if (canvas != null) canvas.enabled = false;
+
+                    // If it's the top card of the deck, make it clickable
+                    if (name == "Deck_Stack" && i == stackCount - 1)
+                    {
+                        card.AddComponent<Mechanics.ClickableDeck>();
+                    }
                 }
+            }
+        }
+
+        private GameObject currentEncounterCard;
+
+        public void DrawEncounter()
+        {
+            if (currentEncounterCard != null) return; // Already have an encounter
+
+            Cards.CardData encounterData = (testMonsters != null && testMonsters.Length > 0) ? testMonsters[0] : null;
+            if (encounterData == null) return;
+
+            // Spawn the card directly at the encounter slot
+            GameObject prefabToUse = monsterPrefab != null ? monsterPrefab : cardPrefab;
+            
+            // Spawn slightly higher so it falls down nicely or just appears on top
+            Vector3 spawnPos = encounterSlot.position + new Vector3(0, 0.05f, 0);
+            currentEncounterCard = Instantiate(prefabToUse, spawnPos, encounterSlot.rotation, encounterSlot);
+            currentEncounterCard.name = "TestCard_Encounter_Active";
+            
+            var display = currentEncounterCard.GetComponent<Cards.CardDisplay>();
+            if (display != null) display.Setup(encounterData);
+
+            if (GameManager.Instance != null && encounterData is Cards.MonsterCardData)
+            {
+                GameManager.Instance.ChangeState(GameState.ActionPhase);
             }
         }
     }

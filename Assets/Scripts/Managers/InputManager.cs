@@ -6,6 +6,13 @@ namespace AdventureCardGame.Managers
     public class InputManager : MonoBehaviour
     {
         private Camera mainCamera;
+        
+        // Drag & Drop State
+        private Cards.CardInteractable draggedCard;
+        private Vector3 originalPosition;
+        private Quaternion originalRotation;
+        private Transform originalParent;
+        private float pointerDownTime;
 
         private void Start()
         {
@@ -18,34 +25,133 @@ namespace AdventureCardGame.Managers
 
         private void Update()
         {
-            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+            if (Mouse.current == null || mainCamera == null) return;
+
+            if (Mouse.current.leftButton.wasPressedThisFrame)
             {
-                HandleClick();
+                HandlePointerDown();
+            }
+            else if (Mouse.current.leftButton.isPressed && draggedCard != null)
+            {
+                HandlePointerDrag();
+            }
+            else if (Mouse.current.leftButton.wasReleasedThisFrame && draggedCard != null)
+            {
+                HandlePointerUp();
             }
         }
 
-        private void HandleClick()
+        private void HandlePointerDown()
         {
-            // Verhindern, dass man durch offene 2D UI-Popups klickt (Inspection Screen)
+            // Close Inspection if open
             if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting)
             {
                 InspectionManager.Instance.CloseInspection();
                 return;
             }
 
-            if (mainCamera == null) return;
-
-            Vector2 mousePosition = Mouse.current.position.ReadValue();
-            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
-
+            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
             if (Physics.Raycast(ray, out RaycastHit hit, 100f))
             {
+                var deck = hit.collider.GetComponent<Mechanics.ClickableDeck>();
+                if (deck != null)
+                {
+                    deck.OnClick();
+                    return;
+                }
+
                 var interactable = hit.collider.GetComponent<Cards.CardInteractable>();
                 if (interactable != null)
                 {
-                    interactable.OnClick();
+                    // Check if it's face up (Canvas enabled)
+                    Canvas c = interactable.GetComponentInChildren<Canvas>();
+                    if (c != null && !c.enabled) return;
+
+                    // Grab the card
+                    draggedCard = interactable;
+                    originalPosition = draggedCard.transform.position;
+                    originalRotation = draggedCard.transform.rotation;
+                    originalParent = draggedCard.transform.parent;
+                    pointerDownTime = Time.time;
+                    
+                    // Optional: disable physics or interactable logic if needed
+                    // For now, just remember we are dragging it
                 }
             }
+        }
+
+        private void HandlePointerDrag()
+        {
+            // Use the original height plus a small offset
+            float currentDragHeight = originalPosition.y + 0.2f;
+            Plane dragPlane = new Plane(Vector3.up, new Vector3(0, currentDragHeight, 0));
+            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            
+            if (dragPlane.Raycast(ray, out float distance))
+            {
+                Vector3 targetPos = ray.GetPoint(distance);
+                draggedCard.transform.position = Vector3.Lerp(draggedCard.transform.position, targetPos, Time.deltaTime * 15f);
+                // Maintain the original flat rotation, but add a slight tilt to show it's picked up
+                draggedCard.transform.rotation = Quaternion.Lerp(draggedCard.transform.rotation, originalRotation * Quaternion.Euler(-15f, 0, 0), Time.deltaTime * 10f);
+            }
+        }
+
+        private void HandlePointerUp()
+        {
+            // Check what we dropped it on
+            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            // Ignore the dragged card itself by temporarily disabling its collider
+            Collider draggedCollider = draggedCard.GetComponent<Collider>();
+            if (draggedCollider != null) draggedCollider.enabled = false;
+
+            bool attacked = false;
+
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+            {
+                var targetInteractable = hit.collider.GetComponent<Cards.CardInteractable>();
+                if (targetInteractable != null && targetInteractable != draggedCard)
+                {
+                    var targetDisplay = targetInteractable.GetComponent<Cards.CardDisplay>();
+                    var draggedDisplay = draggedCard.GetComponent<Cards.CardDisplay>();
+                    
+                    // If dragged a Member onto a Monster
+                    if (draggedDisplay != null && draggedDisplay.cardData is Cards.MemberCardData memberData &&
+                        targetDisplay != null && targetDisplay.cardData is Cards.MonsterCardData monsterData)
+                    {
+                        if (CombatManager.Instance != null)
+                        {
+                            attacked = true;
+                            // Snap back immediately visually
+                            draggedCard.transform.position = originalPosition;
+                            draggedCard.transform.rotation = originalRotation;
+                            
+                            CombatManager.Instance.ResolveCombat(draggedCard.gameObject, targetInteractable.gameObject);
+                        }
+                    }
+                }
+            }
+
+            if (draggedCollider != null) draggedCollider.enabled = true;
+
+            if (!attacked)
+            {
+                // Snap back or inspect
+                // If it was a quick click, inspect it
+                if (Time.time - pointerDownTime < 0.25f)
+                {
+                    draggedCard.transform.position = originalPosition;
+                    draggedCard.transform.rotation = originalRotation;
+                    draggedCard.OnClick();
+                }
+                else
+                {
+                    // Snap back
+                    draggedCard.transform.position = originalPosition;
+                    draggedCard.transform.rotation = originalRotation;
+                }
+            }
+
+            draggedCard = null;
         }
     }
 }
