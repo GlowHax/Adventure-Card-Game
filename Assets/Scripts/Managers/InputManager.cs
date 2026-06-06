@@ -106,7 +106,8 @@ namespace AdventureCardGame.Managers
 
             bool attacked = false;
 
-            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+            RaycastHit[] hits = Physics.RaycastAll(ray, 100f);
+            foreach (var hit in hits)
             {
                 var targetInteractable = hit.collider.GetComponent<Cards.CardInteractable>();
                 if (targetInteractable != null && targetInteractable != draggedCard)
@@ -126,6 +127,7 @@ namespace AdventureCardGame.Managers
                             draggedCard.transform.rotation = originalRotation;
                             
                             CombatManager.Instance.ResolveCombat(draggedCard.gameObject, targetInteractable.gameObject);
+                            break; // Stop checking other hits once we successfully attacked
                         }
                     }
                 }

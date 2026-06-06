@@ -28,6 +28,9 @@ namespace AdventureCardGame.Managers
         [Header("Shop Area")]
         public Transform[] shopSlots;
 
+        public int discardedCardsCount = 0;
+        private const int INITIAL_DISCARD_CARDS = 0;
+
         private void Start()
         {
             if (cardPrefab == null) return;
@@ -39,8 +42,6 @@ namespace AdventureCardGame.Managers
             // Deck Stack (Face down, 5 cards thick)
             SpawnTestCard(deckSlot, "Deck_Stack", null, true, 5, 0);
 
-            // Discard Stack (Face up, 3 cards thick)
-            SpawnTestCard(discardSlot, "Discard_Stack", null, false, 3, 0);
             
             // Encounter Card (will be drawn when clicking deck)
             // Cards.CardData encounterData = (testMonsters != null && testMonsters.Length > 0) ? testMonsters[0] : null;
@@ -68,8 +69,12 @@ namespace AdventureCardGame.Managers
                 // Simulate physical thickness
                 Vector3 positionOffset = new Vector3(0, (startingHeightIndex + i) * 0.005f, 0);
                 
-                // Flip 180 around local X to face down (instead of Z which spun it like a wheel)
-                Quaternion rotationOffset = faceDown ? Quaternion.Euler(180, 0, 0) : Quaternion.identity;
+                // Add slight randomness for deck and discard piles so they look like messy stacks
+                float randomRotZ = 0f;
+                if (slot == discardSlot || slot == deckSlot) randomRotZ = Random.Range(-4f, 4f);
+                
+                // Flip 180 around local Y to face down. Rotate around Z to spin on table.
+                Quaternion rotationOffset = faceDown ? Quaternion.Euler(0, 180f, randomRotZ) : Quaternion.Euler(0, 0, randomRotZ);
                 if (data == null && cardPrefab == null) return;
 
                 GameObject prefabToUse = cardPrefab;
@@ -113,24 +118,84 @@ namespace AdventureCardGame.Managers
         {
             if (currentEncounterCard != null) return; // Already have an encounter
 
-            Cards.CardData encounterData = (testMonsters != null && testMonsters.Length > 0) ? testMonsters[0] : null;
+            Cards.CardData encounterData = null;
+            if (testMonsters != null && testMonsters.Length > 0)
+            {
+                encounterData = testMonsters[Random.Range(0, testMonsters.Length)];
+            }
+            
             if (encounterData == null) return;
 
-            // Spawn the card directly at the encounter slot
+            StartCoroutine(DrawEncounterRoutine(encounterData));
+        }
+
+        private System.Collections.IEnumerator DrawEncounterRoutine(Cards.CardData encounterData)
+        {
             GameObject prefabToUse = monsterPrefab != null ? monsterPrefab : cardPrefab;
             
-            // Spawn slightly higher so it falls down nicely or just appears on top
-            Vector3 spawnPos = encounterSlot.position + new Vector3(0, 0.05f, 0);
-            currentEncounterCard = Instantiate(prefabToUse, spawnPos, encounterSlot.rotation, encounterSlot);
+            // Spawn at the top of the deck stack (face down)
+            Vector3 spawnPos = deckSlot.position + new Vector3(0, 5 * 0.005f, 0);
+            Quaternion spawnRot = deckSlot.rotation * Quaternion.Euler(0, 180, 0);
+            
+            currentEncounterCard = Instantiate(prefabToUse, spawnPos, spawnRot, deckSlot);
             currentEncounterCard.name = "TestCard_Encounter_Active";
             
             var display = currentEncounterCard.GetComponent<Cards.CardDisplay>();
             if (display != null) display.Setup(encounterData);
 
+            // Animate to encounter slot (face up)
+            if (Mechanics.CardAnimator.Instance != null)
+            {
+                yield return StartCoroutine(Mechanics.CardAnimator.Instance.AnimateCardWithFlip(
+                    currentEncounterCard.transform, 
+                    GetEncounterPosition(), 
+                    deckSlot.rotation,
+                    encounterSlot.rotation,
+                    180f, // Start with 180 degrees around local Y
+                    0f,    // End at 0 degrees
+                    1.0f
+                ));
+            }
+            else
+            {
+                currentEncounterCard.transform.position = GetEncounterPosition();
+                currentEncounterCard.transform.rotation = encounterSlot.rotation;
+            }
+
+            // Move parent to encounter slot
+            currentEncounterCard.transform.SetParent(encounterSlot);
+
             if (GameManager.Instance != null && encounterData is Cards.MonsterCardData)
             {
                 GameManager.Instance.ChangeState(GameState.ActionPhase);
             }
+        }
+
+        public void AddToDiscardPile()
+        {
+            discardedCardsCount++;
+        }
+
+        public void ClearCurrentEncounter()
+        {
+            currentEncounterCard = null;
+        }
+
+        public Vector3 GetNextDiscardPosition()
+        {
+            // Limit the visual height so the stack doesn't grow infinitely
+            int visualCount = Mathf.Min(discardedCardsCount, 4);
+            float yOffset = (INITIAL_DISCARD_CARDS + visualCount) * 0.005f;
+            return discardSlot.position + new Vector3(0, yOffset, 0);
+        }
+
+        public Vector3 GetEncounterPosition()
+        {
+            // Limit the visual height of the discard pile underneath it
+            int visualCount = Mathf.Min(discardedCardsCount, 4);
+            // Encounter card floats slightly above the highest discard card
+            float yOffset = (INITIAL_DISCARD_CARDS + visualCount) * 0.005f + 0.01f;
+            return encounterSlot.position + new Vector3(0, yOffset, 0);
         }
     }
 }
