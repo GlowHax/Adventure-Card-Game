@@ -25,7 +25,17 @@ namespace AdventureCardGame.Managers
                 Destroy(gameObject);
         }
 
-        public void AddGold(int amount) => Gold += amount;
+        public void AddGold(int amount)
+        {
+            Gold += amount;
+            if (Gold < 0) Gold = 0; // Prevent negative gold
+            
+            if (AdventureCardGame.Mechanics.CoinManager.Instance != null)
+            {
+                if (amount > 0) AdventureCardGame.Mechanics.CoinManager.Instance.SpawnCoins(amount);
+                else if (amount < 0) AdventureCardGame.Mechanics.CoinManager.Instance.RemoveCoins(-amount);
+            }
+        }
         public void AddHonor(int amount) => Honor += amount;
         
         // Methods for managing members and items

@@ -12,7 +12,7 @@ namespace AdventureCardGame.Managers
         [Header("Prefabs")]
         public GameObject dicePrefab;
         
-        private bool isCombatRunning = false;
+        public bool IsCombatRunning { get; private set; } = false;
         private bool hitResult = false;
         private int lastDamageDealt = 0;
 
@@ -24,7 +24,7 @@ namespace AdventureCardGame.Managers
 
         public void ResolveCombat(GameObject attackerCard, GameObject defenderCard)
         {
-            if (isCombatRunning) 
+            if (IsCombatRunning) 
             {
                 Debug.LogWarning("Combat is already running, attack ignored.");
                 return;
@@ -44,7 +44,7 @@ namespace AdventureCardGame.Managers
 
         private IEnumerator CombatRoutine(GameObject memberCard, Cards.MemberCardData member, GameObject monsterCard, Cards.MonsterCardData monster)
         {
-            isCombatRunning = true;
+            IsCombatRunning = true;
             
             bool playerAttacksFirst;
             if (member.baseSpeed > monster.speed)
@@ -61,7 +61,7 @@ namespace AdventureCardGame.Managers
                 
                 if (monsterCard == null || monsterCard.GetComponent<Cards.CardDisplay>().currentHealth <= 0) 
                 {
-                    isCombatRunning = false;
+                    IsCombatRunning = false;
                     yield break;
                 }
 
@@ -74,7 +74,7 @@ namespace AdventureCardGame.Managers
                 
                 if (memberCard == null || !memberCard.GetComponent<Collider>().enabled) 
                 {
-                    isCombatRunning = false;
+                    IsCombatRunning = false;
                     yield break;
                 }
 
@@ -82,12 +82,12 @@ namespace AdventureCardGame.Managers
                 
                 if (monsterCard == null || monsterCard.GetComponent<Cards.CardDisplay>().currentHealth <= 0) 
                 {
-                    isCombatRunning = false;
+                    IsCombatRunning = false;
                     yield break;
                 }
             }
 
-            isCombatRunning = false;
+            IsCombatRunning = false;
             // Bleibe in der ActionPhase, damit der Spieler weiter angreifen kann (wenn der State nicht schon Idle ist)
             if (GameManager.Instance != null && GameManager.Instance.CurrentState != GameState.Idle) 
                 GameManager.Instance.ChangeState(GameState.ActionPhase);

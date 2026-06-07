@@ -74,6 +74,18 @@ namespace AdventureCardGame.Cards
             {
                 // Events mostly just have text and artwork
             }
+            else if (cardData is TreasureCardData treasure)
+            {
+                if (descriptionText != null) 
+                {
+                    if (treasure.goldAmount > 0)
+                        descriptionText.text = "+" + treasure.goldAmount + " Gold";
+                    else if (treasure.itemReward != null)
+                        descriptionText.text = treasure.itemReward.cardName;
+                    else
+                        descriptionText.text = treasure.description;
+                }
+            }
             else if (cardData is ObjectCardData obj)
             {
                 if (descriptionText != null) descriptionText.text = obj.passiveEffectDescription;

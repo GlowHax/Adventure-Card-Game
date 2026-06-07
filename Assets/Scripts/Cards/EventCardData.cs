@@ -13,7 +13,12 @@ namespace AdventureCardGame.Cards
     public class EventCardData : CardData
     {
         public EventType eventType;
-        // Event logic handler will interpret the event based on its type or custom logic ID
-        public string eventLogicID;
+        
+        // Base method for event logic. Derived classes should override this.
+        public virtual System.Collections.IEnumerator ExecuteEvent(GameObject eventCardObject)
+        {
+            // Default behavior: just wait 2 seconds and finish
+            yield return new WaitForSeconds(2f);
+        }
     }
 }

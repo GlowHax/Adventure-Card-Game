@@ -17,5 +17,5 @@ MonoBehaviour:
   artwork: {fileID: 0}
   honorCost: 3
   baseSpeed: 2
-  baseStrength: 3
+  baseStrength: 5
   abilityDescription: 

@@ -43,6 +43,10 @@ namespace AdventureCardGame.Managers
 
         private void HandlePointerDown()
         {
+            // Block all card interactions during the entire combat routine (including camera flights and counter-attacks)
+            if (CombatManager.Instance != null && CombatManager.Instance.IsCombatRunning)
+                return;
+
             // Close Inspection if open
             if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting)
             {
@@ -53,10 +57,21 @@ namespace AdventureCardGame.Managers
             Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
             if (Physics.Raycast(ray, out RaycastHit hit, 100f))
             {
-                var deck = hit.collider.GetComponent<Mechanics.ClickableDeck>();
-                if (deck != null)
+                if (hit.collider.TryGetComponent(out Mechanics.ClickableDeck deck))
                 {
                     deck.OnClick();
+                    return;
+                }
+                
+                if (hit.collider.TryGetComponent(out Mechanics.ClickableTreasureDeck treasureDeck))
+                {
+                    treasureDeck.OnClick();
+                    return;
+                }
+
+                if (hit.collider.TryGetComponent(out Mechanics.ClickableEventCard eventCard))
+                {
+                    eventCard.OnClick();
                     return;
                 }
 

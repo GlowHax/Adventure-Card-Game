@@ -15,7 +15,7 @@ MonoBehaviour:
   cardName: "Goblin Sp\xE4her"
   description: Ein flinker, aber schwacher Goblin.
   artwork: {fileID: 0}
-  healthPoints: 5
+  healthPoints: 10
   speed: 1
   strength: 1
   passiveEffectDescription: 

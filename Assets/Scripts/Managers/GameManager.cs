@@ -7,7 +7,8 @@ namespace AdventureCardGame.Managers
     {
         Idle,           // Waiting for player action
         ActionPhase,    // Player is dragging cards/equipping
-        Combat          // Dice is rolling, input locked
+        Combat,         // Dice is rolling, input locked
+        Event           // Event logic is running
     }
 
     public class GameManager : MonoBehaviour
@@ -53,6 +54,10 @@ namespace AdventureCardGame.Managers
                         break;
                     case GameState.Combat:
                         CameraManager.Instance.SwitchToDiceRoll();
+                        break;
+                    case GameState.Event:
+                        // During an event, we want to look at the event card on the table until it's clicked.
+                        CameraManager.Instance.SwitchToEncounter();
                         break;
                 }
             }

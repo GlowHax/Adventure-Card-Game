@@ -11,6 +11,8 @@ namespace AdventureCardGame.Managers
         public CinemachineCamera camCombatView;
         public CinemachineCamera camEncounter;
         public CinemachineCamera camDiceRoll;
+        public CinemachineCamera camTreasure;
+        public CinemachineCamera camPlayerView;
 
         private void Awake()
         {
@@ -36,11 +38,25 @@ namespace AdventureCardGame.Managers
             if (camDiceRoll != null) camDiceRoll.Priority = 10;
         }
 
+        public void SwitchToTreasure()
+        {
+            SetAllCamerasPriority(0);
+            if (camTreasure != null) camTreasure.Priority = 10;
+        }
+
+        public void SwitchToPlayerView()
+        {
+            SetAllCamerasPriority(0);
+            if (camPlayerView != null) camPlayerView.Priority = 10;
+        }
+
         private void SetAllCamerasPriority(int priority)
         {
             if (camCombatView != null) camCombatView.Priority = priority;
             if (camEncounter != null) camEncounter.Priority = priority;
             if (camDiceRoll != null) camDiceRoll.Priority = priority;
+            if (camTreasure != null) camTreasure.Priority = priority;
+            if (camPlayerView != null) camPlayerView.Priority = priority;
         }
     }
 }
