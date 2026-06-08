@@ -1279,10 +1279,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7987274070541171960, guid: 1cee572f3f283084dbbefc9f2a920297, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 4300000, guid: 7fd1c3d9e1fb6c0488113e4c24517676, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1659,6 +1655,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1648458902}
+  - component: {fileID: 1648458904}
   m_Layer: 0
   m_Name: TreasureDeckSlot
   m_TagString: Untagged
@@ -1681,6 +1678,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1724939211}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!114 &1648458904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1648458901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ad3d44116aa85c40a42373b689df6f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Mechanics.ClickableTreasureDeck
 --- !u!1 &1681247528
 GameObject:
   m_ObjectHideFlags: 0
@@ -1810,16 +1819,18 @@ MonoBehaviour:
   monsterPrefab: {fileID: 5545229234602117284, guid: 34f02404179083f45913f039db08c511, type: 3}
   memberPrefab: {fileID: 5545229234602117284, guid: 268dc4eaf69fc40489c27a791a56972a, type: 3}
   testMembers:
-  - {fileID: 11400000, guid: e34827047786c734585458cbc5ca1bfd, type: 2}
+  - {fileID: 11400000, guid: 3370def8804fbfb4292a2abf95e4e41e, type: 2}
   testItems: []
   testMonsters:
   - {fileID: 11400000, guid: 5b5b771f711e7584fb1d784c4d872135, type: 2}
   encounterDeck:
+  - {fileID: 11400000, guid: 1ded932b4f6e3a9458016d0d6b0f17d3, type: 2}
   - {fileID: 11400000, guid: 01dfd8e13635ca347998221eebd87e0f, type: 2}
-  - {fileID: 11400000, guid: 01dfd8e13635ca347998221eebd87e0f, type: 2}
-  - {fileID: 11400000, guid: 01dfd8e13635ca347998221eebd87e0f, type: 2}
-  - {fileID: 11400000, guid: 01dfd8e13635ca347998221eebd87e0f, type: 2}
-  - {fileID: 11400000, guid: 5b5b771f711e7584fb1d784c4d872135, type: 2}
+  - {fileID: 11400000, guid: cffa54771bd52654891ef6c9bda575c1, type: 2}
+  - {fileID: 11400000, guid: 48bb6d954aff83a47983d5d142b0e4df, type: 2}
+  - {fileID: 11400000, guid: 4d8746cc585b61247b86dfef1b9ca90e, type: 2}
+  - {fileID: 11400000, guid: d7bb8a41edd5e954797a66b00ac97954, type: 2}
+  - {fileID: 11400000, guid: 1429027427305a74286f4f5ca13c7c2f, type: 2}
   treasureDeck:
   - {fileID: 11400000, guid: b2ceefa634e517d4fa6f09c042feb0a0, type: 2}
   - {fileID: 11400000, guid: 63b2828f7e0e6034d8ed383b2cfb670b, type: 2}
@@ -1844,6 +1855,7 @@ MonoBehaviour:
   - {fileID: 1550394480}
   discardedCardsCount: 0
   CanDrawTreasure: 0
+  IsDrawingTreasure: 0
 --- !u!1 &1765906795
 GameObject:
   m_ObjectHideFlags: 0

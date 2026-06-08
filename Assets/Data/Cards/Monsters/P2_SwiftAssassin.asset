@@ -10,12 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1335fd682ca19dc4aba50d56b7f31cb3, type: 3}
-  m_Name: Goblin_Monster
+  m_Name: P2_SwiftAssassin
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MonsterCardData
-  cardName: "Goblin Sp\xE4her"
-  description: Ein flinker, aber schwacher Goblin.
+  cardName: 'P2: Flinker Assassine'
+  description: 
   artwork: {fileID: 0}
-  healthPoints: 10
+  healthPoints: 1
   speed: 1
-  strength: 1
-  passiveEffectDescription: 
+  strength: 0
+  passiveEffectDescription: +1 Schnelligkeit, falls sich dieses Monster erfolgreich
+    verteidigt.
+  winsTies: 0
+  bonusStrengthOnDefense: 0
+  healOnSuccessfulDefense: 0
+  bonusSpeedOnSuccessfulDefense: 1
+  rewardCoinInsteadOfHonor: 0
+  rewardTreasureOnDefeat: 0

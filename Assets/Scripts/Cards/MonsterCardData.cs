@@ -9,5 +9,13 @@ namespace AdventureCardGame.Cards
         public int speed;
         public int strength;
         public string passiveEffectDescription;
+
+        [Header("Effects")]
+        public bool winsTies;
+        public int bonusStrengthOnDefense;
+        public int healOnSuccessfulDefense;
+        public int bonusSpeedOnSuccessfulDefense;
+        public bool rewardCoinInsteadOfHonor;
+        public int rewardTreasureOnDefeat;
     }
 }

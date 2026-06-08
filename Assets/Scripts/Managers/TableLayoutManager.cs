@@ -40,12 +40,22 @@ namespace AdventureCardGame.Managers
         [HideInInspector]
         public bool CanDrawTreasure = false;
 
+        [Header("Active Members")]
+        public System.Collections.Generic.List<GameObject> activeMembers = new System.Collections.Generic.List<GameObject>();
+
         private void Start()
         {
             if (cardPrefab == null) return;
 
-            // Spawn test cards to visualize the layout
-            SpawnTestCards(memberSlots, "Member_", testMembers);
+            // Spawn test members using dynamic layout
+            if (testMembers != null)
+            {
+                for (int i = 0; i < testMembers.Length; i++)
+                {
+                    AddMember(testMembers[i]);
+                }
+            }
+            
             SpawnTestCards(itemSlots, "Item_", testItems);
             
             // Deck Stack (Face down, 5 cards thick)
@@ -96,7 +106,14 @@ namespace AdventureCardGame.Managers
                 if (data == null && cardPrefab == null) return;
 
                 GameObject prefabToUse = cardPrefab;
-                if (data != null)
+                if (name.Contains("Treasure"))
+                {
+                    #if UNITY_EDITOR
+                    GameObject tPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CardPrefab_Treasure.prefab");
+                    if (tPrefab != null) prefabToUse = tPrefab;
+                    #endif
+                }
+                else if (data != null)
                 {
                     if (data is Cards.MonsterCardData && monsterPrefab != null) prefabToUse = monsterPrefab;
                     else if (data is Cards.MemberCardData && memberPrefab != null) prefabToUse = memberPrefab;
@@ -260,6 +277,79 @@ namespace AdventureCardGame.Managers
         public void ClearCurrentEncounter()
         {
             currentEncounterCard = null;
+        }
+
+        public void AddMember(Cards.CardData memberData)
+        {
+            if (activeMembers.Count >= memberSlots.Length) return; // Full
+
+            GameObject memberCard = Instantiate(cardPrefab);
+            memberCard.name = "Member_" + activeMembers.Count;
+            var display = memberCard.GetComponent<Cards.CardDisplay>();
+            if (display != null && memberData != null)
+            {
+                display.Setup(memberData);
+            }
+            activeMembers.Add(memberCard);
+            
+            UpdateMemberLayout();
+        }
+
+        public void RemoveMember(GameObject memberCard)
+        {
+            if (activeMembers.Contains(memberCard))
+            {
+                activeMembers.Remove(memberCard);
+                Destroy(memberCard);
+                UpdateMemberLayout();
+            }
+        }
+
+        public void UpdateMemberLayout()
+        {
+            int count = activeMembers.Count;
+            if (count == 0) return;
+
+            Transform[] targetSlots = new Transform[count];
+            if (count == 1)
+            {
+                targetSlots[0] = memberSlots[1]; // Mitte
+            }
+            else if (count == 2)
+            {
+                targetSlots[0] = memberSlots[0]; // Links
+                targetSlots[1] = memberSlots[1]; // Mitte
+            }
+            else if (count == 3)
+            {
+                targetSlots[0] = memberSlots[0]; // Links
+                targetSlots[1] = memberSlots[1]; // Mitte
+                targetSlots[2] = memberSlots[2]; // Rechts
+            }
+            else
+            {
+                // Fallback for more than 3
+                for (int i = 0; i < count; i++)
+                    targetSlots[i] = memberSlots[i % memberSlots.Length];
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                GameObject member = activeMembers[i];
+                Transform targetSlot = targetSlots[i];
+                
+                member.transform.SetParent(targetSlot);
+                
+                if (Mechanics.CardAnimator.Instance != null)
+                {
+                    StartCoroutine(Mechanics.CardAnimator.Instance.AnimateCard(member.transform, targetSlot.position, targetSlot.rotation, 0.5f));
+                }
+                else
+                {
+                    member.transform.position = targetSlot.position;
+                    member.transform.rotation = targetSlot.rotation;
+                }
+            }
         }
 
         public Vector3 GetNextDiscardPosition()

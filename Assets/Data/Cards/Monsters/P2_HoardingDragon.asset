@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1335fd682ca19dc4aba50d56b7f31cb3, type: 3}
+  m_Name: P2_HoardingDragon
+  m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MonsterCardData
+  cardName: 'P2: Hortender Drache'
+  description: 
+  artwork: {fileID: 0}
+  healthPoints: 5
+  speed: 2
+  strength: 1
+  passiveEffectDescription: "Das Monster hat +1 St\xE4rke, wenn es sich verteidigt.\nDer
+    Spieler darf einen Schatz ziehen, wenn dieses Monster besiegt wurde."
+  winsTies: 0
+  bonusStrengthOnDefense: 1
+  healOnSuccessfulDefense: 0
+  bonusSpeedOnSuccessfulDefense: 0
+  rewardCoinInsteadOfHonor: 0
+  rewardTreasureOnDefeat: 1

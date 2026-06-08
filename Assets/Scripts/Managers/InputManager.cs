@@ -43,10 +43,6 @@ namespace AdventureCardGame.Managers
 
         private void HandlePointerDown()
         {
-            // Block all card interactions during the entire combat routine (including camera flights and counter-attacks)
-            if (CombatManager.Instance != null && CombatManager.Instance.IsCombatRunning)
-                return;
-
             // Close Inspection if open
             if (InspectionManager.Instance != null && InspectionManager.Instance.IsInspecting)
             {
@@ -63,17 +59,33 @@ namespace AdventureCardGame.Managers
                     return;
                 }
                 
-                if (hit.collider.TryGetComponent(out Mechanics.ClickableTreasureDeck treasureDeck))
-                {
-                    treasureDeck.OnClick();
-                    return;
-                }
-
                 if (hit.collider.TryGetComponent(out Mechanics.ClickableEventCard eventCard))
                 {
                     eventCard.OnClick();
                     return;
                 }
+
+                var treasureDeck = hit.collider.GetComponentInParent<Mechanics.ClickableTreasureDeck>();
+                if (treasureDeck != null)
+                {
+                    treasureDeck.OnClick();
+                    return;
+                }
+
+                // Fallback: If component is missing but we hit something named TreasureDeck
+                if (hit.collider.name.Contains("TreasureDeck") || (hit.collider.transform.parent != null && hit.collider.transform.parent.name.Contains("TreasureDeck")))
+                {
+                    var table = FindAnyObjectByType<Managers.TableLayoutManager>();
+                    if (table != null && table.CanDrawTreasure)
+                    {
+                        table.DrawTreasure();
+                        return;
+                    }
+                }
+
+                // Block all normal card interactions during the entire combat routine
+                if (CombatManager.Instance != null && CombatManager.Instance.IsCombatRunning)
+                    return;
 
                 var interactable = hit.collider.GetComponent<Cards.CardInteractable>();
                 if (interactable != null)
@@ -97,6 +109,12 @@ namespace AdventureCardGame.Managers
 
         private void HandlePointerDrag()
         {
+            var display = draggedCard.GetComponent<Cards.CardDisplay>();
+            if (display != null && !(display.cardData is Cards.MemberCardData))
+            {
+                return; // Only allow dragging Member cards
+            }
+
             // Use the original height plus a small offset
             float currentDragHeight = originalPosition.y + 0.2f;
             Plane dragPlane = new Plane(Vector3.up, new Vector3(0, currentDragHeight, 0));

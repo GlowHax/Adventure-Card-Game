@@ -9,5 +9,8 @@ namespace AdventureCardGame.Cards
         public int baseSpeed;
         public int baseStrength;
         public string abilityDescription;
+        
+        [Header("Abilities")]
+        public int bonusStrengthOnMiss;
     }
 }

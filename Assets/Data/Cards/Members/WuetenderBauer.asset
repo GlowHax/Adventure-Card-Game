@@ -10,12 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8d7cc8c8d6bf3be44b4336c1d5fa5014, type: 3}
-  m_Name: Ritter_Member
+  m_Name: WuetenderBauer
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MemberCardData
-  cardName: Ritter der Garde
-  description: Ein mutiger Ritter.
+  cardName: "W\xFCtender Bauer"
+  description: 
   artwork: {fileID: 0}
-  honorCost: 3
+  honorCost: 0
   baseSpeed: 2
   baseStrength: 5
-  abilityDescription: 
+  abilityDescription: "Wenn dieses Mitglied ein Monster verfehlt, bekommt es +1 St\xE4rke
+    bis zum Ende des n\xE4chsten Angriffs."
+  bonusStrengthOnMiss: 1

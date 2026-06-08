@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1335fd682ca19dc4aba50d56b7f31cb3, type: 3}
+  m_Name: P2_GreedyGoblin
+  m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MonsterCardData
+  cardName: 'P2: Gieriger Goblin'
+  description: 
+  artwork: {fileID: 0}
+  healthPoints: 1
+  speed: 1
+  strength: 0
+  passiveEffectDescription: "Dieses Monster hat +2 St\xE4rke, wenn es sich verteidigt.\nDer
+    Spieler erh\xE4lt statt eines Ehrenpunktes eine M\xFCnze am Ende des Kampfes."
+  winsTies: 0
+  bonusStrengthOnDefense: 2
+  healOnSuccessfulDefense: 0
+  bonusSpeedOnSuccessfulDefense: 0
+  rewardCoinInsteadOfHonor: 1
+  rewardTreasureOnDefeat: 0

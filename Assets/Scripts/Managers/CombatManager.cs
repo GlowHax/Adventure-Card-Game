@@ -95,40 +95,63 @@ namespace AdventureCardGame.Managers
 
         private IEnumerator HandlePlayerAttack(GameObject memberCard, Cards.MemberCardData member, GameObject monsterCard, Cards.MonsterCardData monster)
         {
-            yield return StartCoroutine(ExecuteAttack(member.cardName, member.baseStrength, monster.cardName, monster.strength, true));
+            var monsterDisplay = monsterCard.GetComponent<Cards.CardDisplay>();
+            var memberDisplay = memberCard.GetComponent<Cards.CardDisplay>();
+            
+            // The defense value is simply the current strength (which includes any previously earned permanent buffs)
+            int defenseTarget = monsterDisplay.currentStrength;
+
+            yield return StartCoroutine(ExecuteAttack(member.cardName, memberDisplay.currentStrength, monster.cardName, defenseTarget, true, monster));
             bool playerHit = hitResult;
             
-            // Zurück zur Combat-Kamera, um das Ergebnis zu sehen!
+            // Reset member strength back to base (removes the buff after the attack finishes)
+            if (memberDisplay.currentStrength > member.baseStrength)
+            {
+                memberDisplay.currentStrength = member.baseStrength;
+                memberDisplay.UpdateDisplay();
+            }
+            
             if (GameManager.Instance != null) GameManager.Instance.ChangeState(GameState.ActionPhase);
-            yield return new WaitForSeconds(1.5f); // Kamerafahrt abwarten
+            yield return new WaitForSeconds(1.5f); // Wait for camera to finish moving back to cards
             
             if (playerHit)
             {
-                var monsterDisplay = monsterCard.GetComponent<Cards.CardDisplay>();
                 monsterDisplay.currentHealth -= lastDamageDealt;
                 monsterDisplay.UpdateDisplay();
-                
                 Debug.Log($"{monster.cardName} nimmt {lastDamageDealt} Schaden! Verbleibend: {monsterDisplay.currentHealth}");
                 
-                yield return new WaitForSeconds(1.5f); // Dem Spieler Zeit geben, den Schaden zu sehen
+                yield return new WaitForSeconds(1.5f); 
                 
                 if (monsterDisplay.currentHealth <= 0)
                 {
                     Debug.Log($"{monster.cardName} wurde besiegt!");
-                    
-                    // Kurze Pause einlegen, bevor die Token-Animation startet, damit man das Ergebnis wahrnehmen kann
                     yield return new WaitForSeconds(0.5f);
 
                     if (RewardManager.Instance != null)
                     {
-                        // Token von der Mitte der Monsterkarte spawnen lassen
-                        RewardManager.Instance.SpawnHonorToken(monsterCard.transform.position + new Vector3(0, 0.5f, 0));
+                        if (monster.rewardCoinInsteadOfHonor)
+                        {
+                            Mechanics.CoinManager.Instance.SpawnCoins(1);
+                        }
+                        else
+                        {
+                            RewardManager.Instance.SpawnHonorToken(monsterCard.transform.position + new Vector3(0, 0.5f, 0));
+                        }
                     }
                     
-                    // Warten, bis das Token langsam geflogen ist (Animation dauert ca 2s)
                     yield return new WaitForSeconds(2.2f);
                     
                     var tableLayout = FindAnyObjectByType<TableLayoutManager>();
+                    
+                    if (monster.rewardTreasureOnDefeat > 0 && tableLayout != null)
+                    {
+                        CameraManager.Instance.SwitchToTreasure();
+                        tableLayout.CanDrawTreasure = true;
+                        
+                        while (tableLayout.CanDrawTreasure) yield return null;
+                        while (tableLayout.IsDrawingTreasure) yield return null;
+                    }
+                    
                     if (tableLayout != null && Mechanics.CardAnimator.Instance != null)
                     {
                         var interactable = monsterCard.GetComponent<Cards.CardInteractable>();
@@ -138,7 +161,6 @@ namespace AdventureCardGame.Managers
                         if (col != null) col.enabled = false;
 
                         Vector3 targetPos = tableLayout.GetNextDiscardPosition();
-                        // Add slight random rotation around Z to make the discard pile look messy on the table
                         Quaternion randomOffset = Quaternion.Euler(0, 180f, UnityEngine.Random.Range(-7f, 7f));
                         Quaternion targetRot = tableLayout.discardSlot.rotation * randomOffset;
                         
@@ -150,7 +172,6 @@ namespace AdventureCardGame.Managers
                         Canvas canvas = monsterCard.GetComponentInChildren<Canvas>();
                         if (canvas != null) canvas.enabled = false;
                         
-                        // Destroy the card if we already have enough cards visually in the discard pile
                         if (tableLayout.discardedCardsCount > 4)
                         {
                             Destroy(monsterCard);
@@ -165,7 +186,42 @@ namespace AdventureCardGame.Managers
                         Destroy(monsterCard);
                     }
 
-                    if (GameManager.Instance != null) GameManager.Instance.ChangeState(GameState.Idle); // Zurück zum Encounter View
+                    if (GameManager.Instance != null) GameManager.Instance.ChangeState(GameState.Idle);
+                }
+            }
+            else
+            {
+                // Successful defense by monster
+                bool triggeredDefenseEffect = false;
+                
+                if (monster.bonusStrengthOnDefense > 0)
+                {
+                    monsterDisplay.currentStrength += monster.bonusStrengthOnDefense;
+                    triggeredDefenseEffect = true;
+                }
+                if (monster.healOnSuccessfulDefense > 0)
+                {
+                    monsterDisplay.currentHealth += monster.healOnSuccessfulDefense;
+                    triggeredDefenseEffect = true;
+                }
+                if (monster.bonusSpeedOnSuccessfulDefense > 0)
+                {
+                    monsterDisplay.currentSpeed += monster.bonusSpeedOnSuccessfulDefense;
+                    triggeredDefenseEffect = true;
+                }
+                
+                if (triggeredDefenseEffect)
+                {
+                    monsterDisplay.UpdateDisplay();
+                    yield return new WaitForSeconds(1.0f); // Brief pause to let the player notice the stat increases
+                }
+
+                // Member Ability: bonusStrengthOnMiss
+                if (member.bonusStrengthOnMiss > 0)
+                {
+                    memberDisplay.currentStrength += member.bonusStrengthOnMiss;
+                    memberDisplay.UpdateDisplay();
+                    yield return new WaitForSeconds(1.0f); // Brief pause to let player notice the angry peasant's buff
                 }
             }
         }
@@ -173,21 +229,21 @@ namespace AdventureCardGame.Managers
         private IEnumerator HandleMonsterAttack(GameObject memberCard, Cards.MemberCardData member, GameObject monsterCard, Cards.MonsterCardData monster)
         {
             Debug.Log($"{monster.cardName} greift an!");
-            yield return StartCoroutine(ExecuteAttack(monster.cardName, monster.strength, member.cardName, member.baseStrength, false));
+            yield return StartCoroutine(ExecuteAttack(monster.cardName, monster.strength, member.cardName, member.baseStrength, false, monster));
             bool monsterHit = hitResult;
             
-            // Zurück zur Combat-Kamera
             if (GameManager.Instance != null) GameManager.Instance.ChangeState(GameState.ActionPhase);
-            yield return new WaitForSeconds(2.5f); // Länger warten, damit die Kamerafahrt (1s) sicher beendet ist und der Spieler die Karte noch sieht
+            yield return new WaitForSeconds(2.5f); 
 
             if (monsterHit)
             {
                 Debug.Log($"{member.cardName} wurde besiegt!");
                 KillMember(memberCard);
-                yield return new WaitForSeconds(2.0f); // Dem Spieler Zeit geben, den Verlust zu sehen
+                yield return new WaitForSeconds(2.0f); 
             }
         }
-        private IEnumerator ExecuteAttack(string attackerName, int attackerStrength, string defenderName, int defenderDefense, bool isPlayerAttacking)
+        
+        private IEnumerator ExecuteAttack(string attackerName, int attackerStrength, string defenderName, int defenderDefense, bool isPlayerAttacking, Cards.MonsterCardData monsterData = null)
         {
             if (GameManager.Instance != null) GameManager.Instance.ChangeState(GameState.Combat);
             
@@ -195,13 +251,20 @@ namespace AdventureCardGame.Managers
             
             if (dicePrefab == null)
             {
-                // Fallback to random if no dice prefab
                 int fallbackRoll = Random.Range(1, 7);
-                hitResult = (fallbackRoll + attackerStrength) > defenderDefense;
+                int fallbackAttack = fallbackRoll + attackerStrength;
+                if (fallbackAttack == defenderDefense && monsterData != null && monsterData.winsTies)
+                {
+                    hitResult = !isPlayerAttacking;
+                }
+                else
+                {
+                    hitResult = fallbackAttack > defenderDefense;
+                }
+                lastDamageDealt = hitResult ? fallbackRoll : 0;
                 yield break;
             }
 
-            // Find table center
             Vector3 centerPos = Vector3.zero;
             var tableLayout = FindAnyObjectByType<TableLayoutManager>();
             if (tableLayout != null && tableLayout.encounterSlot != null)
@@ -209,28 +272,19 @@ namespace AdventureCardGame.Managers
                 centerPos = tableLayout.encounterSlot.position;
             }
 
-            // Spawn Dice
             GameObject dice = Instantiate(dicePrefab);
-            
-            // Color the dice using pre-baked materials from Resources
             MeshRenderer renderer = dice.GetComponent<MeshRenderer>();
             if (renderer != null)
             {
                 string matName = isPlayerAttacking ? "DicePlayerMat" : "DiceMonsterMat";
                 Material diceMat = Resources.Load<Material>(matName);
-                if (diceMat != null)
-                {
-                    renderer.material = diceMat;
-                }
+                if (diceMat != null) renderer.material = diceMat;
             }
 
             Mechanics.DiceRoller roller = dice.GetComponent<Mechanics.DiceRoller>();
-            
-            // Spawn offset from center and throw towards center
             Vector3 spawnPos = centerPos + new Vector3(isPlayerAttacking ? -1.5f : 1.5f, 0.8f, -1.0f);
             Vector3 throwDir = new Vector3(isPlayerAttacking ? 1f : -1f, -0.2f, 1f).normalized;
             
-            // Make the Dice Camera track the dice!
             var diceCamObj = GameObject.Find("CM_DiceRollView");
             if (diceCamObj != null)
             {
@@ -240,36 +294,33 @@ namespace AdventureCardGame.Managers
 
             roller.Roll(spawnPos, throwDir, 3f);
             
-            while (roller.IsRolling())
-            {
-                yield return null;
-            }
+            while (roller.IsRolling()) yield return null;
             
             int roll = roller.GetResult();
             int totalAttack = roll + attackerStrength;
 
-            Debug.Log($"{attackerName} greift an! Würfel: {roll} + Stärke: {attackerStrength} = {totalAttack} (Ziel: {defenderDefense})");
-
-            if (totalAttack > defenderDefense)
+            if (totalAttack == defenderDefense && monsterData != null && monsterData.winsTies)
             {
-                lastDamageDealt = totalAttack - defenderDefense;
-                Debug.Log($"-> Treffer! Schaden: {lastDamageDealt}");
-                hitResult = true;
+                hitResult = !isPlayerAttacking;
+                Debug.Log($"Gleichstand! {monsterData.cardName} gewinnt dank Fähigkeit.");
             }
             else
             {
-                lastDamageDealt = 0;
-                Debug.Log("-> Verfehlt / Abgewehrt!");
-                hitResult = false;
+                hitResult = totalAttack > defenderDefense;
             }
             
-            // Clean up dice after a short pause
-            Destroy(dice, 1.5f);
+            lastDamageDealt = hitResult ? (totalAttack - defenderDefense) : 0;
+            
             yield return new WaitForSeconds(1.5f);
+            Destroy(dice);
         }
 
         private void KillMember(GameObject memberCard)
         {
+            // Mark as dead for Game Over checks
+            var display = memberCard.GetComponent<Cards.CardDisplay>();
+            if (display != null) display.currentHealth = 0;
+
             // Disable interaction
             Collider col = memberCard.GetComponent<Collider>();
             if (col != null) col.enabled = false;
@@ -302,9 +353,75 @@ namespace AdventureCardGame.Managers
             yield return new WaitForSeconds(delay);
             if (memberCard != null)
             {
-                Canvas canvas = memberCard.GetComponentInChildren<Canvas>();
-                if (canvas != null) canvas.enabled = false;
+                Canvas c = memberCard.GetComponentInChildren<Canvas>();
+                if (c != null) c.enabled = false;
+
+                var table = FindAnyObjectByType<TableLayoutManager>();
+                if (table != null)
+                {
+                    // Count how many members are still alive
+                    int aliveCount = 0;
+                    foreach (var member in table.activeMembers)
+                    {
+                        var display = member.GetComponent<Cards.CardDisplay>();
+                        if (display != null && display.currentHealth > 0)
+                        {
+                            aliveCount++;
+                        }
+                    }
+
+                    // Check Game Over
+                    if (aliveCount == 0)
+                    {
+                        ShowGameOverUI();
+                    }
+                }
             }
+        }
+
+        private void ShowGameOverUI()
+        {
+            if (UnityEngine.EventSystems.EventSystem.current == null)
+            {
+                GameObject eventSystemObj = new GameObject("EventSystem");
+                eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                eventSystemObj.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            }
+
+            GameObject canvasObj = new GameObject("GameOverCanvas");
+            Canvas canvas = canvasObj.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+            canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            GameObject buttonObj = new GameObject("RestartButton");
+            buttonObj.transform.SetParent(canvasObj.transform, false);
+            
+            UnityEngine.UI.Button button = buttonObj.AddComponent<UnityEngine.UI.Button>();
+            UnityEngine.UI.Image image = buttonObj.AddComponent<UnityEngine.UI.Image>();
+            image.color = new Color(0.8f, 0.2f, 0.2f, 0.9f);
+            
+            RectTransform rect = buttonObj.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(300, 100);
+            rect.anchoredPosition = Vector2.zero;
+
+            GameObject textObj = new GameObject("Text");
+            textObj.transform.SetParent(buttonObj.transform, false);
+            UnityEngine.UI.Text text = textObj.AddComponent<UnityEngine.UI.Text>();
+            text.text = "Ganze Gruppe besiegt!\nSpiel neustarten";
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = Color.white;
+            text.fontSize = 24;
+
+            RectTransform textRect = textObj.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.sizeDelta = Vector2.zero;
+
+            button.onClick.AddListener(() => {
+                UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            });
         }
     }
 }
