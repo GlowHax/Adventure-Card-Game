@@ -10,18 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1335fd682ca19dc4aba50d56b7f31cb3, type: 3}
-  m_Name: P1_TiebreakerSlime
+  m_Name: VampiricBat
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MonsterCardData
-  cardName: 'P1: Unnachgiebiger Schleim'
+  cardName: Vampirfledermaus
   description: 
   artwork: {fileID: 0}
-  healthPoints: 3
-  speed: 1
+  phase: 2
+  healthPoints: 10
+  speed: 3
   strength: 1
-  passiveEffectDescription: Bei einem Gleichstand gewinnt immer dieses Monster.
-  winsTies: 1
+  passiveEffectDescription: +2 LP wenn dieses Monster Angreift.
+  winsTies: 0
   bonusStrengthOnDefense: 0
   healOnSuccessfulDefense: 0
   bonusSpeedOnSuccessfulDefense: 0
+  healOnAttack: 2
   rewardCoinInsteadOfHonor: 0
   rewardTreasureOnDefeat: 0

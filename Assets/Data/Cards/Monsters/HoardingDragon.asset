@@ -10,18 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1335fd682ca19dc4aba50d56b7f31cb3, type: 3}
-  m_Name: P2_VampiricBat
+  m_Name: HoardingDragon
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MonsterCardData
-  cardName: 'P2: Vampirfledermaus'
+  cardName: Hortender Drache
   description: 
   artwork: {fileID: 0}
-  healthPoints: 2
-  speed: 1
-  strength: 6
-  passiveEffectDescription: +1 LP, falls sich dieses Monster erfolgreich verteidigt.
+  phase: 2
+  healthPoints: 9
+  speed: 2
+  strength: 2
+  passiveEffectDescription: "Das Monster hat +1 St\xE4rke, wenn es einen Angriff
+    \xFCberlebt.\nDer Spieler darf einen Schatz ziehen, wenn dieses Monster besiegt
+    wurde."
   winsTies: 0
-  bonusStrengthOnDefense: 0
-  healOnSuccessfulDefense: 1
+  bonusStrengthOnDefense: 1
+  healOnSuccessfulDefense: 0
   bonusSpeedOnSuccessfulDefense: 0
+  healOnAttack: 0
   rewardCoinInsteadOfHonor: 0
-  rewardTreasureOnDefeat: 0
+  rewardTreasureOnDefeat: 1

@@ -17,8 +17,15 @@ namespace AdventureCardGame.Managers
         [Header("Deck Configuration")]
         [Tooltip("The actual playable deck. Cards are drawn from index 0 (top) downwards.")]
         public System.Collections.Generic.List<Cards.CardData> encounterDeck;
+        
+        [Tooltip("If true, the encounter deck will be shuffled at the start of the game.")]
+        public bool shuffleEncounterDeckOnStart = true;
+
         [Tooltip("The actual playable treasure deck. Cards are drawn from index 0 (top) downwards.")]
         public System.Collections.Generic.List<Cards.TreasureCardData> treasureDeck;
+        
+        [Tooltip("If true, the treasure deck will be shuffled at the start of the game.")]
+        public bool shuffleTreasureDeckOnStart = true;
 
         [Header("Player Area")]
         public Transform[] memberSlots;
@@ -45,6 +52,16 @@ namespace AdventureCardGame.Managers
 
         private void Start()
         {
+            if (shuffleEncounterDeckOnStart && encounterDeck != null)
+            {
+                ShuffleList(encounterDeck);
+            }
+            
+            if (shuffleTreasureDeckOnStart && treasureDeck != null)
+            {
+                ShuffleList(treasureDeck);
+            }
+
             if (cardPrefab == null) return;
 
             // Spawn test members using dynamic layout
@@ -58,8 +75,12 @@ namespace AdventureCardGame.Managers
             
             SpawnTestCards(itemSlots, "Item_", testItems);
             
-            // Deck Stack (Face down, 5 cards thick)
-            SpawnTestCard(deckSlot, "Deck_Stack", null, true, 5, 0);
+            // Deck Stack (Face down, up to 5 cards thick depending on deck size)
+            int initialDeckCount = encounterDeck != null ? Mathf.Min(encounterDeck.Count, 5) : 5;
+            // If the deck is completely empty at the start, still spawn at least 1 test card as fallback (so you can click it)
+            if (initialDeckCount == 0 && (encounterDeck == null || encounterDeck.Count == 0)) initialDeckCount = 1;
+            
+            SpawnTestCard(deckSlot, "Deck_Stack", null, true, initialDeckCount, 0);
 
             // Treasure Deck Stack (Face down)
             Transform tDeck = transform.Find("TreasureDeckSlot");
@@ -164,6 +185,7 @@ namespace AdventureCardGame.Managers
             {
                 encounterData = encounterDeck[0];
                 encounterDeck.RemoveAt(0); // Remove the drawn card from the top of the deck
+                UpdateVisualDeckStack();
             }
             // Fallback to random test monsters if deck is empty
             else if (testMonsters != null && testMonsters.Length > 0)
@@ -175,6 +197,41 @@ namespace AdventureCardGame.Managers
             if (encounterData == null) return;
 
             StartCoroutine(DrawEncounterRoutine(encounterData));
+        }
+
+        private void UpdateVisualDeckStack()
+        {
+            if (deckSlot == null) return;
+            
+            int targetVisualCount = encounterDeck != null ? Mathf.Min(encounterDeck.Count, 5) : 5;
+            
+            System.Collections.Generic.List<GameObject> visualCards = new System.Collections.Generic.List<GameObject>();
+            foreach (Transform child in deckSlot)
+            {
+                if (child.name.StartsWith("TestCard_Deck_Stack"))
+                {
+                    visualCards.Add(child.gameObject);
+                }
+            }
+            
+            if (visualCards.Count > targetVisualCount)
+            {
+                int toRemove = visualCards.Count - targetVisualCount;
+                for (int i = 0; i < toRemove; i++)
+                {
+                    GameObject cardToRemove = visualCards[visualCards.Count - 1 - i];
+                    Destroy(cardToRemove);
+                }
+                
+                if (targetVisualCount > 0)
+                {
+                    GameObject newTopCard = visualCards[targetVisualCount - 1];
+                    if (newTopCard.GetComponent<Mechanics.ClickableDeck>() == null)
+                    {
+                        newTopCard.AddComponent<Mechanics.ClickableDeck>();
+                    }
+                }
+            }
         }
 
         private System.Collections.IEnumerator DrawEncounterRoutine(Cards.CardData encounterData)
@@ -228,7 +285,24 @@ namespace AdventureCardGame.Managers
                 else if (encounterData is Cards.EventCardData eventData)
                 {
                     GameManager.Instance.ChangeState(GameState.Event);
+                    
+                    var clickable = currentEncounterCard.AddComponent<Mechanics.ClickableEventCard>();
+                    while (!clickable.isClicked)
+                    {
+                        yield return null;
+                    }
+                    Destroy(clickable);
+
                     yield return StartCoroutine(eventData.ExecuteEvent(currentEncounterCard));
+                    
+                    // Switch camera back to encounter just in case the event changed it (e.g. Ausgleich)
+                    if (CameraManager.Instance != null)
+                    {
+                        CameraManager.Instance.SwitchToEncounter();
+                    }
+                    
+                    // Pause briefly so the player can re-focus on the card before it gets discarded
+                    yield return new WaitForSeconds(1.0f);
                     
                     // Keep a reference for the discard animation
                     GameObject cardToDiscard = currentEncounterCard;
@@ -489,6 +563,17 @@ namespace AdventureCardGame.Managers
             Destroy(treasureCard);
             
             IsDrawingTreasure = false;
+        }
+
+        private void ShuffleList<T>(System.Collections.Generic.List<T> list)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                T temp = list[i];
+                int randomIndex = UnityEngine.Random.Range(i, list.Count);
+                list[i] = list[randomIndex];
+                list[randomIndex] = temp;
+            }
         }
     }
 }

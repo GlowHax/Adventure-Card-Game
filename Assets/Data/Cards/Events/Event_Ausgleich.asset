@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00ae3555508c45e4f96d76c8db624b29, type: 3}
+  m_Name: Event_Ausgleich
+  m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.AusgleichEventData
+  cardName: Ausgleich
+  description: 'Besitzt der Spieler 0 Gold: +2 Gold.
+
+    Besitzt er 1 oder mehr
+    Gold: -2 Gold.'
+  artwork: {fileID: 0}
+  eventType: 2

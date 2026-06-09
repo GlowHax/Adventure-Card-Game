@@ -10,19 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1335fd682ca19dc4aba50d56b7f31cb3, type: 3}
-  m_Name: P2_HoardingDragon
+  m_Name: ShieldedSkeleton
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MonsterCardData
-  cardName: 'P2: Hortender Drache'
+  cardName: Schild-Skelett
   description: 
   artwork: {fileID: 0}
-  healthPoints: 5
+  phase: 1
+  healthPoints: 7
   speed: 2
   strength: 1
-  passiveEffectDescription: "Das Monster hat +1 St\xE4rke, wenn es sich verteidigt.\nDer
-    Spieler darf einen Schatz ziehen, wenn dieses Monster besiegt wurde."
+  passiveEffectDescription: "Dieses Monster hat +1 St\xE4rke, wenn es einen Angriff
+    \xFCberlebt."
   winsTies: 0
   bonusStrengthOnDefense: 1
   healOnSuccessfulDefense: 0
   bonusSpeedOnSuccessfulDefense: 0
+  healOnAttack: 0
   rewardCoinInsteadOfHonor: 0
-  rewardTreasureOnDefeat: 1
+  rewardTreasureOnDefeat: 0

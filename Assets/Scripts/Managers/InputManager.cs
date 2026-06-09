@@ -16,6 +16,7 @@ namespace AdventureCardGame.Managers
 
         private void Start()
         {
+            Application.runInBackground = true; // Prevents the game from freezing when unfocused
             mainCamera = Camera.main;
             if (mainCamera == null && Camera.allCamerasCount > 0)
             {
@@ -31,13 +32,17 @@ namespace AdventureCardGame.Managers
             {
                 HandlePointerDown();
             }
-            else if (Mouse.current.leftButton.isPressed && draggedCard != null)
+            else if (draggedCard != null)
             {
-                HandlePointerDrag();
-            }
-            else if (Mouse.current.leftButton.wasReleasedThisFrame && draggedCard != null)
-            {
-                HandlePointerUp();
+                // Robustly check for release, even if the application lost focus and missed the 'wasReleasedThisFrame' event
+                if (Mouse.current.leftButton.isPressed)
+                {
+                    HandlePointerDrag();
+                }
+                else
+                {
+                    HandlePointerUp();
+                }
             }
         }
 

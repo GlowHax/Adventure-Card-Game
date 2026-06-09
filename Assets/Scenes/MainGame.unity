@@ -1824,17 +1824,18 @@ MonoBehaviour:
   testMonsters:
   - {fileID: 11400000, guid: 5b5b771f711e7584fb1d784c4d872135, type: 2}
   encounterDeck:
-  - {fileID: 11400000, guid: 1ded932b4f6e3a9458016d0d6b0f17d3, type: 2}
-  - {fileID: 11400000, guid: 01dfd8e13635ca347998221eebd87e0f, type: 2}
+  - {fileID: 11400000, guid: 1429027427305a74286f4f5ca13c7c2f, type: 2}
+  - {fileID: 11400000, guid: 4d8746cc585b61247b86dfef1b9ca90e, type: 2}
   - {fileID: 11400000, guid: cffa54771bd52654891ef6c9bda575c1, type: 2}
   - {fileID: 11400000, guid: 48bb6d954aff83a47983d5d142b0e4df, type: 2}
-  - {fileID: 11400000, guid: 4d8746cc585b61247b86dfef1b9ca90e, type: 2}
   - {fileID: 11400000, guid: d7bb8a41edd5e954797a66b00ac97954, type: 2}
-  - {fileID: 11400000, guid: 1429027427305a74286f4f5ca13c7c2f, type: 2}
+  - {fileID: 11400000, guid: 1ded932b4f6e3a9458016d0d6b0f17d3, type: 2}
+  shuffleEncounterDeckOnStart: 0
   treasureDeck:
   - {fileID: 11400000, guid: b2ceefa634e517d4fa6f09c042feb0a0, type: 2}
   - {fileID: 11400000, guid: 63b2828f7e0e6034d8ed383b2cfb670b, type: 2}
   - {fileID: 11400000, guid: e11bb0e54b2889a4ab6265754e4fb140, type: 2}
+  shuffleTreasureDeckOnStart: 1
   memberSlots:
   - {fileID: 32748331}
   - {fileID: 718923204}
@@ -1855,6 +1856,7 @@ MonoBehaviour:
   - {fileID: 1550394480}
   discardedCardsCount: 0
   CanDrawTreasure: 0
+  activeMembers: []
   IsDrawingTreasure: 0
 --- !u!1 &1765906795
 GameObject:

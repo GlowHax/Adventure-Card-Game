@@ -42,17 +42,82 @@ namespace AdventureCardGame.Mechanics
             
             float timeout = 4.0f;
             float elapsed = 0f;
+            int nudgeAttempts = 0;
             
-            while (rb.linearVelocity.sqrMagnitude > 0.01f || rb.angularVelocity.sqrMagnitude > 0.01f)
+            while (true)
             {
+                if (rb.linearVelocity.sqrMagnitude <= 0.01f && rb.angularVelocity.sqrMagnitude <= 0.01f)
+                {
+                    // It has stopped physically. Let's check if it's on an edge
+                    if (IsOnEdge())
+                    {
+                        if (nudgeAttempts < 2)
+                        {
+                            nudgeAttempts++;
+                            
+                            // Nudge towards center (0,0,0)
+                            Vector3 dirToCenter = (Vector3.zero - transform.position).normalized;
+                            dirToCenter.y = 1.0f; // Add upward bounce
+                            dirToCenter.Normalize();
+                            
+                            rb.AddForce(dirToCenter * 2.5f, ForceMode.Impulse);
+                            rb.AddTorque(Random.insideUnitSphere * 2.5f, ForceMode.Impulse);
+                            
+                            // Wait a bit for the nudge to take effect
+                            yield return new WaitForSeconds(0.5f);
+                            continue; // Re-evaluate loop
+                        }
+                        else
+                        {
+                            // Stuck for too long, just snap it
+                            SnapToNearestFace();
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // Safely flat
+                        break;
+                    }
+                }
+
                 elapsed += Time.deltaTime;
-                if (elapsed >= timeout) break;
+                if (elapsed >= timeout)
+                {
+                    // Timeout hit. Snap it if it's on an edge.
+                    if (IsOnEdge()) SnapToNearestFace();
+                    break;
+                }
+                
                 yield return null;
             }
             
             // Dice stopped
             isRolling = false;
             CalculateResult();
+        }
+
+        private bool IsOnEdge()
+        {
+            float maxDot = -Mathf.Infinity;
+            Vector3[] directions = { transform.up, -transform.up, transform.right, -transform.right, transform.forward, -transform.forward };
+            foreach (var dir in directions)
+            {
+                float dot = Vector3.Dot(dir, Vector3.up);
+                if (dot > maxDot) maxDot = dot;
+            }
+            
+            // If the max dot product is less than 0.95 (approx 18 degrees off), it's leaning or on an edge
+            return maxDot < 0.95f;
+        }
+
+        private void SnapToNearestFace()
+        {
+            Vector3 euler = transform.rotation.eulerAngles;
+            euler.x = Mathf.Round(euler.x / 90f) * 90f;
+            euler.y = Mathf.Round(euler.y / 90f) * 90f;
+            euler.z = Mathf.Round(euler.z / 90f) * 90f;
+            transform.rotation = Quaternion.Euler(euler);
         }
 
         private void CalculateResult()

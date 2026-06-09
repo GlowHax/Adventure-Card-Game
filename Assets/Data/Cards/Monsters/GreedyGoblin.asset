@@ -10,18 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1335fd682ca19dc4aba50d56b7f31cb3, type: 3}
-  m_Name: P1_ShieldedSkeleton
+  m_Name: GreedyGoblin
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MonsterCardData
-  cardName: 'P1: Schild-Skelett'
+  cardName: Gieriger Goblin
   description: 
   artwork: {fileID: 0}
-  healthPoints: 2
+  phase: 2
+  healthPoints: 9
   speed: 1
-  strength: 6
-  passiveEffectDescription: "Dieses Monster hat +1 St\xE4rke, wenn es sich verteidigt."
+  strength: 1
+  passiveEffectDescription: "Dieses Monster hat +1 St\xE4rke, wenn es einen Angriff
+    \xFCberlebt.\nDer Spieler erh\xE4lt statt eines Ehrenpunktes +1 Gold am Ende
+    des Kampfes."
   winsTies: 0
   bonusStrengthOnDefense: 1
   healOnSuccessfulDefense: 0
   bonusSpeedOnSuccessfulDefense: 0
-  rewardCoinInsteadOfHonor: 0
+  rewardCoinInsteadOfHonor: 1
   rewardTreasureOnDefeat: 0

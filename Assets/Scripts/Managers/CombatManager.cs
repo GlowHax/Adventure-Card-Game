@@ -46,44 +46,74 @@ namespace AdventureCardGame.Managers
         {
             IsCombatRunning = true;
             
+            var memberDisplay = memberCard.GetComponent<Cards.CardDisplay>();
+            var monsterDisplay = monsterCard.GetComponent<Cards.CardDisplay>();
+            
+            int pSpeed = memberDisplay != null ? memberDisplay.currentSpeed : member.baseSpeed;
+            int mSpeed = monsterDisplay != null ? monsterDisplay.currentSpeed : monster.speed;
+            
+            int playerAttackCount = 1;
+            int monsterAttackCount = 1;
+            
+            if (pSpeed > 0 && pSpeed >= mSpeed * 2)
+                playerAttackCount = 2;
+            else if (mSpeed > 0 && mSpeed >= pSpeed * 2)
+                monsterAttackCount = 2;
+
             bool playerAttacksFirst;
-            if (member.baseSpeed > monster.speed)
+            if (pSpeed > mSpeed)
                 playerAttacksFirst = true;
-            else if (member.baseSpeed < monster.speed)
+            else if (pSpeed < mSpeed)
                 playerAttacksFirst = false;
             else
                 playerAttacksFirst = UnityEngine.Random.value > 0.5f; // Zufall bei Gleichstand
 
             if (playerAttacksFirst)
             {
-                Debug.Log($"Kampf beginnt: {member.cardName} greift zuerst an (Speed: {member.baseSpeed} vs {monster.speed})");
-                yield return StartCoroutine(HandlePlayerAttack(memberCard, member, monsterCard, monster));
+                Debug.Log($"Kampf beginnt: {member.cardName} greift zuerst an (Speed: {pSpeed} vs {mSpeed}). Angriffe: {playerAttackCount}");
                 
-                if (monsterCard == null || monsterCard.GetComponent<Cards.CardDisplay>().currentHealth <= 0) 
+                for (int i = 0; i < playerAttackCount; i++)
                 {
-                    IsCombatRunning = false;
-                    yield break;
+                    yield return StartCoroutine(HandlePlayerAttack(memberCard, member, monsterCard, monster));
+                    if (monsterCard == null || monsterCard.GetComponent<Cards.CardDisplay>().currentHealth <= 0) 
+                    {
+                        IsCombatRunning = false;
+                        yield break;
+                    }
                 }
 
-                yield return StartCoroutine(HandleMonsterAttack(memberCard, member, monsterCard, monster));
+                for (int i = 0; i < monsterAttackCount; i++)
+                {
+                    yield return StartCoroutine(HandleMonsterAttack(memberCard, member, monsterCard, monster));
+                    if (memberCard == null || memberCard.GetComponent<Cards.CardDisplay>().currentHealth <= 0) 
+                    {
+                        IsCombatRunning = false;
+                        yield break;
+                    }
+                }
             }
             else
             {
-                Debug.Log($"Kampf beginnt: {monster.cardName} greift zuerst an (Speed: {monster.speed} vs {member.baseSpeed})");
-                yield return StartCoroutine(HandleMonsterAttack(memberCard, member, monsterCard, monster));
+                Debug.Log($"Kampf beginnt: {monster.cardName} greift zuerst an (Speed: {mSpeed} vs {pSpeed}). Angriffe: {monsterAttackCount}");
                 
-                if (memberCard == null || !memberCard.GetComponent<Collider>().enabled) 
+                for (int i = 0; i < monsterAttackCount; i++)
                 {
-                    IsCombatRunning = false;
-                    yield break;
+                    yield return StartCoroutine(HandleMonsterAttack(memberCard, member, monsterCard, monster));
+                    if (memberCard == null || !memberCard.GetComponent<Collider>().enabled) 
+                    {
+                        IsCombatRunning = false;
+                        yield break;
+                    }
                 }
 
-                yield return StartCoroutine(HandlePlayerAttack(memberCard, member, monsterCard, monster));
-                
-                if (monsterCard == null || monsterCard.GetComponent<Cards.CardDisplay>().currentHealth <= 0) 
+                for (int i = 0; i < playerAttackCount; i++)
                 {
-                    IsCombatRunning = false;
-                    yield break;
+                    yield return StartCoroutine(HandlePlayerAttack(memberCard, member, monsterCard, monster));
+                    if (monsterCard == null || monsterCard.GetComponent<Cards.CardDisplay>().currentHealth <= 0) 
+                    {
+                        IsCombatRunning = false;
+                        yield break;
+                    }
                 }
             }
 
@@ -189,9 +219,10 @@ namespace AdventureCardGame.Managers
                     if (GameManager.Instance != null) GameManager.Instance.ChangeState(GameState.Idle);
                 }
             }
-            else
+            
+            // If the monster is still alive (either missed or survived the damage)
+            if (monsterDisplay.currentHealth > 0)
             {
-                // Successful defense by monster
                 bool triggeredDefenseEffect = false;
                 
                 if (monster.bonusStrengthOnDefense > 0)
@@ -215,21 +246,39 @@ namespace AdventureCardGame.Managers
                     monsterDisplay.UpdateDisplay();
                     yield return new WaitForSeconds(1.0f); // Brief pause to let the player notice the stat increases
                 }
+            }
 
-                // Member Ability: bonusStrengthOnMiss
-                if (member.bonusStrengthOnMiss > 0)
-                {
-                    memberDisplay.currentStrength += member.bonusStrengthOnMiss;
-                    memberDisplay.UpdateDisplay();
-                    yield return new WaitForSeconds(1.0f); // Brief pause to let player notice the angry peasant's buff
-                }
+            // Member Ability: bonusStrengthOnMiss
+            // This ONLY triggers if the player missed the attack.
+            if (!playerHit && member.bonusStrengthOnMiss > 0)
+            {
+                memberDisplay.currentStrength += member.bonusStrengthOnMiss;
+                memberDisplay.UpdateDisplay();
+                yield return new WaitForSeconds(1.0f); // Brief pause to let player notice the angry peasant's buff
             }
         }
 
         private IEnumerator HandleMonsterAttack(GameObject memberCard, Cards.MemberCardData member, GameObject monsterCard, Cards.MonsterCardData monster)
         {
+            var monsterDisplay = monsterCard.GetComponent<Cards.CardDisplay>();
+            var memberDisplay = memberCard.GetComponent<Cards.CardDisplay>();
+            
             Debug.Log($"{monster.cardName} greift an!");
-            yield return StartCoroutine(ExecuteAttack(monster.cardName, monster.strength, member.cardName, member.baseStrength, false, monster));
+            
+            if (monster.healOnAttack > 0)
+            {
+                if (monsterDisplay != null)
+                {
+                    monsterDisplay.currentHealth += monster.healOnAttack;
+                    monsterDisplay.UpdateDisplay();
+                    // Kein WaitForSeconds hier, damit die Würfel-Animation genauso schnell startet wie beim Spieler
+                }
+            }
+
+            int mStrength = monsterDisplay != null ? monsterDisplay.currentStrength : monster.strength;
+            int pStrength = memberDisplay != null ? memberDisplay.currentStrength : member.baseStrength;
+
+            yield return StartCoroutine(ExecuteAttack(monster.cardName, mStrength, member.cardName, pStrength, false, monster));
             bool monsterHit = hitResult;
             
             if (GameManager.Instance != null) GameManager.Instance.ChangeState(GameState.ActionPhase);
