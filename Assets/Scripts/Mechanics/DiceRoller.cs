@@ -143,8 +143,72 @@ namespace AdventureCardGame.Mechanics
                     result = values[i];
                 }
             }
-            
             Debug.Log($"Dice rolled: {result}");
+            StartCoroutine(HighlightResultRoutine());
+        }
+
+        private IEnumerator HighlightResultRoutine()
+        {
+            Vector3 originalScale = transform.localScale;
+
+            // Spawn 3D Text to highlight the result clearly
+            GameObject textObj = new GameObject("DiceResultText");
+            textObj.transform.position = transform.position + Vector3.up * 0.4f;
+            
+            var tmp = textObj.AddComponent<TMPro.TextMeshPro>();
+            tmp.text = result.ToString();
+            tmp.fontSize = 2f; // Made even smaller
+            tmp.color = new Color(1f, 0.8f, 0f); // Gold/Yellow
+            tmp.alignment = TMPro.TextAlignmentOptions.Center;
+            tmp.fontStyle = TMPro.FontStyles.Bold;
+            
+            Camera cam = Camera.main;
+
+            float duration = 0.7f; // Animation is much faster now
+            float elapsed = 0f;
+            Vector3 startPos = textObj.transform.position;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                
+                // Make text float upwards
+                textObj.transform.position = startPos + Vector3.up * (t * 0.6f);
+                
+                // Scale animation: pop up, settle, shrink to 0
+                float scale = 0f;
+                if (t < 0.2f) {
+                    scale = Mathf.Lerp(0f, 1.3f, t / 0.2f);
+                } else if (t < 0.7f) {
+                    scale = Mathf.Lerp(1.3f, 1.0f, (t - 0.2f) / 0.5f);
+                } else {
+                    scale = Mathf.Lerp(1.0f, 0f, (t - 0.7f) / 0.3f);
+                }
+                textObj.transform.localScale = Vector3.one * scale;
+                
+                // Always face camera
+                if (cam != null)
+                {
+                    textObj.transform.rotation = Quaternion.LookRotation(textObj.transform.position - cam.transform.position);
+                }
+                
+                // Slight dice bounce in the first 0.3 seconds
+                if (t < 0.3f)
+                {
+                    float bounceT = t / 0.3f;
+                    transform.localScale = originalScale * (1f + Mathf.Sin(bounceT * Mathf.PI) * 0.15f);
+                }
+                else
+                {
+                    transform.localScale = originalScale;
+                }
+
+                yield return null;
+            }
+
+            transform.localScale = originalScale;
+            if (textObj != null) Destroy(textObj);
         }
 
         public bool IsRolling() => isRolling;

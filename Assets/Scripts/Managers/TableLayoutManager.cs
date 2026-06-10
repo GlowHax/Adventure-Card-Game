@@ -138,6 +138,13 @@ namespace AdventureCardGame.Managers
                 {
                     if (data is Cards.MonsterCardData && monsterPrefab != null) prefabToUse = monsterPrefab;
                     else if (data is Cards.MemberCardData && memberPrefab != null) prefabToUse = memberPrefab;
+                    else if (data is Cards.EquipmentCardData)
+                    {
+                        #if UNITY_EDITOR
+                        GameObject eqPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CardPrefab_Equipment.prefab");
+                        if (eqPrefab != null) prefabToUse = eqPrefab;
+                        #endif
+                    }
                 }
 
                 GameObject card = Instantiate(prefabToUse, slot.position + positionOffset, slot.rotation * rotationOffset, slot);

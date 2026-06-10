@@ -21,3 +21,5 @@ MonoBehaviour:
   abilityDescription: "Wenn dieses Mitglied ein Monster verfehlt, bekommt es +2 St\xE4rke
     bis zum Ende des n\xE4chsten Angriffs."
   bonusStrengthOnMiss: 2
+  startingEquipment:
+  - {fileID: 11400000, guid: 1fcc33a550fad59418d99a81f57ed3f0, type: 2}

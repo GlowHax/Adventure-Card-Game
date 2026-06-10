@@ -29,6 +29,18 @@ namespace AdventureCardGame.Cards
         public GameObject costContainer;
         public TextMeshProUGUI costText;
 
+        public System.Collections.Generic.List<EquipmentCardData> equippedItems = new System.Collections.Generic.List<EquipmentCardData>();
+
+        void Awake()
+        {
+            // Dynamically add the RenderTexture converter to ensure all UI elements receive 3D lighting
+            // without modifying prefabs manually.
+            if (GetComponent<CanvasToRenderTexture>() == null)
+            {
+                gameObject.AddComponent<CanvasToRenderTexture>();
+            }
+        }
+
         public void Setup(CardData data)
         {
             cardData = data;
@@ -43,6 +55,43 @@ namespace AdventureCardGame.Cards
                 currentHealth = 1; // Members don't have HP visually yet, but good to init
                 currentSpeed = member.baseSpeed;
                 currentStrength = member.baseStrength;
+                
+                // Copy starting equipment and apply permanent buffs
+                equippedItems.Clear();
+                if (member.startingEquipment != null)
+                {
+                    foreach (var item in member.startingEquipment)
+                    {
+                        equippedItems.Add(item);
+                        if (!item.onlyOnDefense)
+                        {
+                            currentStrength += item.strengthBuff;
+                            currentSpeed += item.speedBuff;
+                        }
+
+                        // Spawn physical representation
+                        #if UNITY_EDITOR
+                        GameObject eqPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CardPrefab_Equipment.prefab");
+                        if (eqPrefab != null)
+                        {
+                            GameObject eqObj = Instantiate(eqPrefab, transform);
+                            // Set rotation to match the parent card exactly
+                            eqObj.transform.localRotation = Quaternion.identity;
+                            // Offset it so it peeks out from underneath the member (reduced distance)
+                            eqObj.transform.localPosition = new Vector3(0.04f * equippedItems.Count, -0.04f * equippedItems.Count, 0.01f * equippedItems.Count);
+                            // Set its visual display
+                            var eqDisplay = eqObj.GetComponent<CardDisplay>();
+                            if (eqDisplay != null) eqDisplay.Setup(item);
+                            
+                            // Make it non-interactable so it doesn't mess with dragging the parent card
+                            var eqInteract = eqObj.GetComponent<CardInteractable>();
+                            if (eqInteract != null) Destroy(eqInteract);
+                            var eqCollider = eqObj.GetComponent<Collider>();
+                            if (eqCollider != null) Destroy(eqCollider);
+                        }
+                        #endif
+                    }
+                }
             }
             UpdateDisplay();
         }
@@ -100,6 +149,12 @@ namespace AdventureCardGame.Cards
             {
                 if (descriptionText != null) descriptionText.text = obj.passiveEffectDescription;
             }
+            else if (cardData is EquipmentCardData eq)
+            {
+                if (costContainer != null) { costContainer.SetActive(true); if (costText != null) costText.text = eq.cost.ToString(); }
+                if (strengthContainer != null && eq.strengthBuff > 0) { strengthContainer.SetActive(true); if (strengthText != null) strengthText.text = "+" + eq.strengthBuff; }
+                if (speedContainer != null && eq.speedBuff > 0) { speedContainer.SetActive(true); if (speedText != null) speedText.text = "+" + eq.speedBuff; }
+            }
         }
         public void HighlightEffectText()
         {
@@ -121,6 +176,31 @@ namespace AdventureCardGame.Cards
             
             descriptionText.color = originalColor;
             descriptionText.transform.localScale = originalScale;
+        }
+
+        public void HighlightStrengthText()
+        {
+            if (strengthText != null && gameObject.activeInHierarchy)
+            {
+                StartCoroutine(HighlightStatRoutine(strengthText));
+            }
+        }
+
+        private System.Collections.IEnumerator HighlightStatRoutine(TextMeshProUGUI textComp)
+        {
+            Color originalColor = textComp.color;
+            Vector3 originalScale = textComp.transform.localScale;
+            
+            textComp.color = new Color(1f, 0.8f, 0f); // Gold/Yellow
+            textComp.transform.localScale = originalScale * 1.2f;
+            
+            yield return new WaitForSeconds(1.5f);
+            
+            if (textComp != null)
+            {
+                textComp.color = originalColor;
+                textComp.transform.localScale = originalScale;
+            }
         }
     }
 }

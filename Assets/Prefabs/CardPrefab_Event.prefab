@@ -66,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7908b22cbf9b0764fb23e15fd12983d7, type: 2}
+  - {fileID: 2100000, guid: 13e007f9f2efb1f4db32eb515295fe74, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -424,6 +424,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.CardDisplay
   cardData: {fileID: 0}
   currentHealth: 0
+  currentSpeed: 0
+  currentStrength: 0
   artworkImage: {fileID: 0}
   nameText: {fileID: 2880998187973795615}
   descriptionText: {fileID: 549963559092719146}
@@ -435,6 +437,7 @@ MonoBehaviour:
   healthText: {fileID: 0}
   costContainer: {fileID: 0}
   costText: {fileID: 0}
+  equippedItems: []
 --- !u!114 &4291565282740344881
 MonoBehaviour:
   m_ObjectHideFlags: 0

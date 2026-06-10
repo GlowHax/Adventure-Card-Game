@@ -278,6 +278,28 @@ namespace AdventureCardGame.Managers
             int mStrength = monsterDisplay != null ? monsterDisplay.currentStrength : monster.strength;
             int pStrength = memberDisplay != null ? memberDisplay.currentStrength : member.baseStrength;
 
+            // Add equipment buffs that apply ONLY on defense
+            int tempStrengthBuff = 0;
+            if (memberDisplay != null)
+            {
+                foreach (var item in memberDisplay.equippedItems)
+                {
+                    if (item.onlyOnDefense)
+                    {
+                        tempStrengthBuff += item.strengthBuff;
+                    }
+                }
+
+                if (tempStrengthBuff > 0)
+                {
+                    memberDisplay.currentStrength += tempStrengthBuff;
+                    pStrength += tempStrengthBuff;
+                    memberDisplay.UpdateDisplay();
+                    memberDisplay.HighlightStrengthText();
+                    // Kein WaitForSeconds hier, damit der Würfelwurf sofort startet (Highlight ist während des Wurfes sichtbar)
+                }
+            }
+
             yield return StartCoroutine(ExecuteAttack(monster.cardName, mStrength, member.cardName, pStrength, false, monster));
             bool monsterHit = hitResult;
             
@@ -289,6 +311,13 @@ namespace AdventureCardGame.Managers
                 Debug.Log($"{member.cardName} wurde besiegt!");
                 KillMember(memberCard);
                 yield return new WaitForSeconds(2.0f); 
+            }
+
+            // Revert temporary visual buffs
+            if (memberDisplay != null && tempStrengthBuff > 0)
+            {
+                memberDisplay.currentStrength -= tempStrengthBuff;
+                memberDisplay.UpdateDisplay();
             }
         }
         

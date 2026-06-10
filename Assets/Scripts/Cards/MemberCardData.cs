@@ -12,5 +12,8 @@ namespace AdventureCardGame.Cards
         
         [Header("Abilities")]
         public int bonusStrengthOnMiss;
+
+        [Header("Equipment")]
+        public System.Collections.Generic.List<EquipmentCardData> startingEquipment = new System.Collections.Generic.List<EquipmentCardData>();
     }
 }
