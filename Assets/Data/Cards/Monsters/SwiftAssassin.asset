@@ -16,8 +16,8 @@ MonoBehaviour:
   description: 
   artwork: {fileID: 0}
   phase: 2
-  healthPoints: 16
-  speed: 1
+  healthPoints: 8
+  speed: 2
   strength: 1
   passiveEffectDescription: "+1 Schnelligkeit, falls dieses Monster einen Angriff
     \xFCberlebt."

@@ -58,5 +58,7 @@ namespace AdventureCardGame.Managers
             if (camTreasure != null) camTreasure.Priority = priority;
             if (camPlayerView != null) camPlayerView.Priority = priority;
         }
+
+        public bool IsPlayerViewActive => camPlayerView != null && camPlayerView.Priority > 0;
     }
 }

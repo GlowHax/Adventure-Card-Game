@@ -10,20 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1335fd682ca19dc4aba50d56b7f31cb3, type: 3}
-  m_Name: TiebreakerSlime
+  m_Name: BountyHunter
   m_EditorClassIdentifier: Assembly-CSharp::AdventureCardGame.Cards.MonsterCardData
-  cardName: Unnachgiebiger Schleim
+  cardName: "Kopfgeldj\xE4ger"
   description: 
   artwork: {fileID: 0}
   phase: 1
-  healthPoints: 14
-  speed: 1
-  strength: 1
-  passiveEffectDescription: Bei einem Gleichstand gewinnt immer dieses Monster.
-  winsTies: 1
-  bonusStrengthOnDefense: 0
+  healthPoints: 5
+  speed: 2
+  strength: 0
+  passiveEffectDescription: "F\xFCr jede M\xFCnze die du besitzt, +2 St\xE4rke. "
+  winsTies: 0
+  bonusStrengthOnDefense: 4
   healOnSuccessfulDefense: 0
-  bonusSpeedOnSuccessfulDefense: 0
+  bonusSpeedOnSuccessfulDefense: 3
   healOnAttack: 0
   rewardCoinInsteadOfHonor: 0
   rewardTreasureOnDefeat: 0
+  bonusStrengthPerCoin: 2

@@ -58,33 +58,38 @@ namespace AdventureCardGame.Managers
             Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
             if (Physics.Raycast(ray, out RaycastHit hit, 100f))
             {
-                if (hit.collider.TryGetComponent(out Mechanics.ClickableDeck deck))
+                bool isPlayerView = CameraManager.Instance != null && CameraManager.Instance.IsPlayerViewActive;
+
+                if (!isPlayerView && hit.collider.TryGetComponent(out Mechanics.ClickableDeck deck))
                 {
                     deck.OnClick();
                     return;
                 }
                 
-                if (hit.collider.TryGetComponent(out Mechanics.ClickableEventCard eventCard))
+                if (!isPlayerView && hit.collider.TryGetComponent(out Mechanics.ClickableEventCard eventCard))
                 {
                     eventCard.OnClick();
                     return;
                 }
 
-                var treasureDeck = hit.collider.GetComponentInParent<Mechanics.ClickableTreasureDeck>();
-                if (treasureDeck != null)
+                if (!isPlayerView)
                 {
-                    treasureDeck.OnClick();
-                    return;
-                }
-
-                // Fallback: If component is missing but we hit something named TreasureDeck
-                if (hit.collider.name.Contains("TreasureDeck") || (hit.collider.transform.parent != null && hit.collider.transform.parent.name.Contains("TreasureDeck")))
-                {
-                    var table = FindAnyObjectByType<Managers.TableLayoutManager>();
-                    if (table != null && table.CanDrawTreasure)
+                    var treasureDeck = hit.collider.GetComponentInParent<Mechanics.ClickableTreasureDeck>();
+                    if (treasureDeck != null)
                     {
-                        table.DrawTreasure();
+                        treasureDeck.OnClick();
                         return;
+                    }
+
+                    // Fallback: If component is missing but we hit something named TreasureDeck
+                    if (hit.collider.name.Contains("TreasureDeck") || (hit.collider.transform.parent != null && hit.collider.transform.parent.name.Contains("TreasureDeck")))
+                    {
+                        var table = FindAnyObjectByType<Managers.TableLayoutManager>();
+                        if (table != null && table.CanDrawTreasure)
+                        {
+                            table.DrawTreasure();
+                            return;
+                        }
                     }
                 }
 
@@ -114,6 +119,9 @@ namespace AdventureCardGame.Managers
 
         private void HandlePointerDrag()
         {
+            if (CameraManager.Instance != null && CameraManager.Instance.IsPlayerViewActive)
+                return;
+
             var display = draggedCard.GetComponent<Cards.CardDisplay>();
             if (display != null && !(display.cardData is Cards.MemberCardData))
             {
@@ -143,29 +151,33 @@ namespace AdventureCardGame.Managers
             if (draggedCollider != null) draggedCollider.enabled = false;
 
             bool attacked = false;
+            bool isPlayerView = CameraManager.Instance != null && CameraManager.Instance.IsPlayerViewActive;
 
-            RaycastHit[] hits = Physics.RaycastAll(ray, 100f);
-            foreach (var hit in hits)
+            if (!isPlayerView)
             {
-                var targetInteractable = hit.collider.GetComponent<Cards.CardInteractable>();
-                if (targetInteractable != null && targetInteractable != draggedCard)
+                RaycastHit[] hits = Physics.RaycastAll(ray, 100f);
+                foreach (var hit in hits)
                 {
-                    var targetDisplay = targetInteractable.GetComponent<Cards.CardDisplay>();
-                    var draggedDisplay = draggedCard.GetComponent<Cards.CardDisplay>();
-                    
-                    // If dragged a Member onto a Monster
-                    if (draggedDisplay != null && draggedDisplay.cardData is Cards.MemberCardData memberData &&
-                        targetDisplay != null && targetDisplay.cardData is Cards.MonsterCardData monsterData)
+                    var targetInteractable = hit.collider.GetComponent<Cards.CardInteractable>();
+                    if (targetInteractable != null && targetInteractable != draggedCard)
                     {
-                        if (CombatManager.Instance != null)
+                        var targetDisplay = targetInteractable.GetComponent<Cards.CardDisplay>();
+                        var draggedDisplay = draggedCard.GetComponent<Cards.CardDisplay>();
+                        
+                        // If dragged a Member onto a Monster
+                        if (draggedDisplay != null && draggedDisplay.cardData is Cards.MemberCardData memberData &&
+                            targetDisplay != null && targetDisplay.cardData is Cards.MonsterCardData monsterData)
                         {
-                            attacked = true;
-                            // Snap back immediately visually
-                            draggedCard.transform.position = originalPosition;
-                            draggedCard.transform.rotation = originalRotation;
-                            
-                            CombatManager.Instance.ResolveCombat(draggedCard.gameObject, targetInteractable.gameObject);
-                            break; // Stop checking other hits once we successfully attacked
+                            if (CombatManager.Instance != null)
+                            {
+                                attacked = true;
+                                // Snap back immediately visually
+                                draggedCard.transform.position = originalPosition;
+                                draggedCard.transform.rotation = originalRotation;
+                                
+                                CombatManager.Instance.ResolveCombat(draggedCard.gameObject, targetInteractable.gameObject);
+                                break; // Stop checking other hits once we successfully attacked
+                            }
                         }
                     }
                 }

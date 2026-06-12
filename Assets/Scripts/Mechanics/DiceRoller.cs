@@ -171,10 +171,9 @@ namespace AdventureCardGame.Mechanics
                 }
             }
             Debug.Log($"Dice rolled: {result}");
-            StartCoroutine(HighlightResultRoutine());
         }
 
-        private IEnumerator HighlightResultRoutine()
+        public IEnumerator ShowResultTextRoutine(bool isCritical)
         {
             Vector3 originalScale = transform.localScale;
 
@@ -183,7 +182,7 @@ namespace AdventureCardGame.Mechanics
             textObj.transform.position = transform.position + Vector3.up * 0.4f;
             
             var tmp = textObj.AddComponent<TMPro.TextMeshPro>();
-            tmp.text = result.ToString();
+            tmp.text = result.ToString() + (isCritical ? "!" : "");
             tmp.fontSize = 2f; 
             tmp.color = glowColor; 
             tmp.alignment = TMPro.TextAlignmentOptions.Center;

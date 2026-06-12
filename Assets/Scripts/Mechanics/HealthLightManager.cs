@@ -9,6 +9,8 @@ public class HealthLightManager : MonoBehaviour
 
     [Header("Light References")]
     public Light mainTableLight;
+    public Light leftSideLight;
+    public Light rightSideLight;
     public GameOverSequence gameOverSequence;
 
     [Header("Light Settings")]
@@ -67,8 +69,8 @@ public class HealthLightManager : MonoBehaviour
             // Only ambient flicker if we took damage but are not dead
             if (currentHealth < maxHealth && currentHealth > 0)
             {
-                // Wait for a random time (e.g. 4 to 12 seconds)
-                yield return new WaitForSeconds(Random.Range(4f, 12f));
+                // Deutlich selteneres Flackern (z.B. alle 15 bis 35 Sekunden)
+                yield return new WaitForSeconds(Random.Range(15f, 35f));
                 
                 if (mainTableLight != null)
                 {
@@ -168,6 +170,44 @@ public class HealthLightManager : MonoBehaviour
                 mainTableLight.spotAngle = baseAngle;
             }
 
+            if (leftSideLight != null || rightSideLight != null)
+            {
+                float sideLightT = t;
+                if (currentHealth == 2)
+                {
+                    // Kurz flackern lassen, dann plötzlich abstürzen
+                    float fadeStart = 0.35f; 
+                    float fadeLength = 0.3f; 
+                    
+                    if (t < fadeStart) sideLightT = 0f;
+                    else sideLightT = Mathf.Clamp01((t - fadeStart) / fadeLength);
+                }
+                else
+                {
+                    sideLightT = 1f;
+                }
+
+                // Verwende den gleichen flickerMultiplier wie beim Hauptlicht für synchrones Flackern
+                float flickerMultiplierForSides = 1f;
+                float noiseForSides = Mathf.PerlinNoise(seed + 100f, elapsed * 12f);
+                if (noiseForSides < 0.25f * flickerDecay) flickerMultiplierForSides = 0f; 
+                else if (noiseForSides > (1f - 0.25f * flickerDecay)) flickerMultiplierForSides = Random.Range(1.5f, 2.5f); 
+
+                if (leftSideLight != null)
+                {
+                    // start intensity fixed at 2.5f if it was on
+                    float startLeft = currentHealth == 2 ? 2.5f : 0f;
+                    float baseSide = Mathf.Lerp(startLeft, 0f, sideLightT);
+                    leftSideLight.intensity = Mathf.Max(0f, baseSide * Mathf.Lerp(1f, flickerMultiplierForSides, flickerDecay));
+                }
+                if (rightSideLight != null)
+                {
+                    float startRight = currentHealth == 2 ? 2.5f : 0f;
+                    float baseSide = Mathf.Lerp(startRight, 0f, sideLightT);
+                    rightSideLight.intensity = Mathf.Max(0f, baseSide * Mathf.Lerp(1f, flickerMultiplierForSides, flickerDecay));
+                }
+            }
+
             yield return null;
         }
 
@@ -176,6 +216,12 @@ public class HealthLightManager : MonoBehaviour
         {
             mainTableLight.intensity = targetIntensity;
             mainTableLight.spotAngle = targetAngle;
+        }
+        
+        if (currentHealth < 3)
+        {
+            if (leftSideLight != null) leftSideLight.intensity = 0f;
+            if (rightSideLight != null) rightSideLight.intensity = 0f;
         }
 
         if (currentHealth == 1)

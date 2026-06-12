@@ -22,5 +22,6 @@ namespace AdventureCardGame.Cards
         public int healOnAttack;
         public bool rewardCoinInsteadOfHonor;
         public int rewardTreasureOnDefeat;
+        public int bonusStrengthPerCoin;
     }
 }

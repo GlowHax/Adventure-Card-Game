@@ -64,5 +64,38 @@ namespace AdventureCardGame.Managers
             
             OnStateChanged?.Invoke(newState);
         }
+
+        private void Update()
+        {
+            if (UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                if (UnityEngine.InputSystem.Keyboard.current.sKey.wasPressedThisFrame)
+                {
+                    if (CameraManager.Instance != null)
+                    {
+                        CameraManager.Instance.SwitchToPlayerView();
+                    }
+                }
+                else if (UnityEngine.InputSystem.Keyboard.current.wKey.wasPressedThisFrame)
+                {
+                    if (CameraManager.Instance != null)
+                    {
+                        switch (CurrentState)
+                        {
+                            case GameState.Idle:
+                            case GameState.Event:
+                                CameraManager.Instance.SwitchToEncounter();
+                                break;
+                            case GameState.ActionPhase:
+                                CameraManager.Instance.SwitchToCombatView();
+                                break;
+                            case GameState.Combat:
+                                CameraManager.Instance.SwitchToDiceRoll();
+                                break;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

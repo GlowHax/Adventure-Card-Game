@@ -14,6 +14,9 @@ namespace AdventureCardGame.Mechanics
 
         private List<GameObject> activeCoins = new List<GameObject>();
 
+        public int CurrentCoins => activeCoins.Count;
+        public static event System.Action<int> OnCoinsChanged;
+
         private void Awake()
         {
             if (Instance == null) Instance = this;
@@ -35,6 +38,7 @@ namespace AdventureCardGame.Mechanics
                 Vector3 spawnPos = coinBoxTransform.position + new Vector3(Random.Range(-0.2f, 0.2f), 1f, Random.Range(-0.2f, 0.2f));
                 GameObject coin = Instantiate(coinPrefab, spawnPos, Random.rotation);
                 activeCoins.Add(coin);
+                OnCoinsChanged?.Invoke(CurrentCoins);
                 yield return new WaitForSeconds(0.1f); // Stagger spawns
             }
         }
@@ -54,6 +58,7 @@ namespace AdventureCardGame.Mechanics
                 {
                     activeCoins.RemoveAt(i);
                     removed++;
+                    OnCoinsChanged?.Invoke(CurrentCoins);
                     // Flash and dissolve effect
                     StartCoroutine(FlashAndDissolve(coin));
                     yield return new WaitForSeconds(0.15f);

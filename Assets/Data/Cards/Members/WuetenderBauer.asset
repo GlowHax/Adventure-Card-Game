@@ -17,7 +17,7 @@ MonoBehaviour:
   artwork: {fileID: 0}
   honorCost: 0
   baseSpeed: 2
-  baseStrength: 6
+  baseStrength: 2
   abilityDescription: "Wenn dieses Mitglied ein Monster verfehlt, bekommt es +2 St\xE4rke
     bis zum Ende des n\xE4chsten Angriffs."
   bonusStrengthOnMiss: 2

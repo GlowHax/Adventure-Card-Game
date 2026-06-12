@@ -36,6 +36,13 @@ namespace AdventureCardGame.Cards
 
         void Awake()
         {
+            if (nameText != null) { nameText.overflowMode = TMPro.TextOverflowModes.Overflow; nameText.fontSizeMin = 5f; }
+            if (descriptionText != null) { descriptionText.overflowMode = TMPro.TextOverflowModes.Overflow; descriptionText.fontSizeMin = 5f; }
+            if (speedText != null) { speedText.overflowMode = TMPro.TextOverflowModes.Overflow; speedText.fontSizeMin = 5f; }
+            if (strengthText != null) { strengthText.overflowMode = TMPro.TextOverflowModes.Overflow; strengthText.fontSizeMin = 5f; }
+            if (healthText != null) { healthText.overflowMode = TMPro.TextOverflowModes.Overflow; healthText.fontSizeMin = 5f; }
+            if (costText != null) { costText.overflowMode = TMPro.TextOverflowModes.Overflow; costText.fontSizeMin = 5f; }
+
             c2rt = GetComponentInChildren<CanvasToRenderTexture>();
 
             if (descriptionText != null && hiddenEffectText == null)
@@ -79,6 +86,11 @@ namespace AdventureCardGame.Cards
                 currentHealth = monster.healthPoints;
                 currentSpeed = monster.speed;
                 currentStrength = monster.strength;
+
+                if (monster.bonusStrengthPerCoin > 0 && Mechanics.CoinManager.Instance != null)
+                {
+                    currentStrength += monster.bonusStrengthPerCoin * Mechanics.CoinManager.Instance.CurrentCoins;
+                }
             }
             else if (data is MemberCardData member)
             {
@@ -254,6 +266,7 @@ namespace AdventureCardGame.Cards
         void OnEnable()
         {
             HealthLightManager.OnHealthLevelChanged += HandleHealthChanged;
+            Mechanics.CoinManager.OnCoinsChanged += HandleCoinsChanged;
             
             // Check if we spawned into a critical health state
             var hm = FindObjectOfType<HealthLightManager>();
@@ -266,6 +279,16 @@ namespace AdventureCardGame.Cards
         void OnDisable()
         {
             HealthLightManager.OnHealthLevelChanged -= HandleHealthChanged;
+            Mechanics.CoinManager.OnCoinsChanged -= HandleCoinsChanged;
+        }
+
+        private void HandleCoinsChanged(int currentCoins)
+        {
+            if (cardData is MonsterCardData monster && monster.bonusStrengthPerCoin > 0)
+            {
+                currentStrength = monster.strength + (monster.bonusStrengthPerCoin * currentCoins);
+                UpdateDisplay();
+            }
         }
 
         private void HandleHealthChanged(int currentHealth)
@@ -303,7 +326,8 @@ namespace AdventureCardGame.Cards
                 float t = elapsed / duration;
                 
                 if (descriptionText != null) descriptionText.color = new Color(descriptionText.color.r, descriptionText.color.g, descriptionText.color.b, 1f - t);
-                if (nameText != null) nameText.color = new Color(nameText.color.r, nameText.color.g, nameText.color.b, 1f - t);
+                // nameText stays fully visible so it glows!
+                // if (nameText != null) nameText.color = new Color(nameText.color.r, nameText.color.g, nameText.color.b, 1f - t);
                 if (artworkImage != null) artworkImage.color = new Color(artworkImage.color.r, artworkImage.color.g, artworkImage.color.b, 1f - t);
                 if (bgImage != null && bgImage != artworkImage) bgImage.color = Color.Lerp(startBgColor, targetBgColor, t);
                 
@@ -316,7 +340,7 @@ namespace AdventureCardGame.Cards
 
             // Snap to final values
             if (descriptionText != null) descriptionText.color = new Color(descriptionText.color.r, descriptionText.color.g, descriptionText.color.b, 0f);
-            if (nameText != null) nameText.color = new Color(nameText.color.r, nameText.color.g, nameText.color.b, 0f);
+            // if (nameText != null) nameText.color = new Color(nameText.color.r, nameText.color.g, nameText.color.b, 0f);
             if (artworkImage != null) artworkImage.color = new Color(artworkImage.color.r, artworkImage.color.g, artworkImage.color.b, 0f);
             if (bgImage != null && bgImage != artworkImage) bgImage.color = targetBgColor;
             

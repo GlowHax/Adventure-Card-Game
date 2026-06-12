@@ -16,9 +16,9 @@ MonoBehaviour:
   description: 
   artwork: {fileID: 0}
   phase: 1
-  healthPoints: 7
+  healthPoints: 10
   speed: 2
-  strength: 1
+  strength: 0
   passiveEffectDescription: "Dieses Monster hat +1 St\xE4rke, wenn es einen Angriff
     \xFCberlebt."
   winsTies: 0

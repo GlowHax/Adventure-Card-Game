@@ -304,13 +304,17 @@ namespace AdventureCardGame.Managers
             bool monsterHit = hitResult;
             
             if (GameManager.Instance != null) GameManager.Instance.ChangeState(GameState.ActionPhase);
-            yield return new WaitForSeconds(2.5f); 
+            // Längere Spannungspause, bevor der Schaden tatsächlich "einschlägt"
+            yield return new WaitForSeconds(3.5f); 
 
             if (monsterHit)
             {
-                Debug.Log($"{member.cardName} wurde besiegt!");
-                KillMember(memberCard);
-                yield return new WaitForSeconds(2.0f); 
+                Debug.Log($"Der Spieler nimmt durch den Angriff von {monster.cardName} Schaden!");
+                var hm = FindObjectOfType<HealthLightManager>();
+                if (hm != null) hm.TakeDamage();
+                
+                // Große Pause NACH dem Einschlag, damit das Erdbeben und der Lichtausfall wirken können
+                yield return new WaitForSeconds(5.0f); 
             }
 
             // Revert temporary visual buffs
@@ -391,117 +395,12 @@ namespace AdventureCardGame.Managers
             
             lastDamageDealt = hitResult ? (totalAttack - defenderDefense) : 0;
             
+            yield return StartCoroutine(roller.ShowResultTextRoutine(hitResult));
+            
             yield return new WaitForSeconds(1.5f);
             Destroy(dice);
         }
 
-        private void KillMember(GameObject memberCard)
-        {
-            // Mark as dead for Game Over checks
-            var display = memberCard.GetComponent<Cards.CardDisplay>();
-            if (display != null) display.currentHealth = 0;
 
-            // Disable interaction
-            Collider col = memberCard.GetComponent<Collider>();
-            if (col != null) col.enabled = false;
-
-            // Animate Flip
-            if (Mechanics.CardAnimator.Instance != null)
-            {
-                StartCoroutine(Mechanics.CardAnimator.Instance.AnimateCardWithFlip(
-                    memberCard.transform,
-                    memberCard.transform.position, // stay in place
-                    memberCard.transform.parent.rotation,
-                    memberCard.transform.parent.rotation,
-                    0f,
-                    180f,
-                    1.0f
-                ));
-            }
-            else
-            {
-                memberCard.transform.rotation = memberCard.transform.parent.rotation * Quaternion.Euler(0, 180, 0);
-            }
-            
-            // Disable Canvas slightly delayed so it doesn't disappear instantly before the flip hides it.
-            // Flip takes 1.0f, so at 0.5f the card is exactly 90 degrees turned (invisible edge-on).
-            StartCoroutine(DisableCanvasDelayed(memberCard, 0.5f));
-        }
-
-        private IEnumerator DisableCanvasDelayed(GameObject memberCard, float delay)
-        {
-            yield return new WaitForSeconds(delay);
-            if (memberCard != null)
-            {
-                Canvas c = memberCard.GetComponentInChildren<Canvas>();
-                if (c != null) c.enabled = false;
-
-                var table = FindAnyObjectByType<TableLayoutManager>();
-                if (table != null)
-                {
-                    // Count how many members are still alive
-                    int aliveCount = 0;
-                    foreach (var member in table.activeMembers)
-                    {
-                        var display = member.GetComponent<Cards.CardDisplay>();
-                        if (display != null && display.currentHealth > 0)
-                        {
-                            aliveCount++;
-                        }
-                    }
-
-                    // Check Game Over
-                    if (aliveCount == 0)
-                    {
-                        ShowGameOverUI();
-                    }
-                }
-            }
-        }
-
-        private void ShowGameOverUI()
-        {
-            if (UnityEngine.EventSystems.EventSystem.current == null)
-            {
-                GameObject eventSystemObj = new GameObject("EventSystem");
-                eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
-                eventSystemObj.AddComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
-            }
-
-            GameObject canvasObj = new GameObject("GameOverCanvas");
-            Canvas canvas = canvasObj.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
-            canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
-
-            GameObject buttonObj = new GameObject("RestartButton");
-            buttonObj.transform.SetParent(canvasObj.transform, false);
-            
-            UnityEngine.UI.Button button = buttonObj.AddComponent<UnityEngine.UI.Button>();
-            UnityEngine.UI.Image image = buttonObj.AddComponent<UnityEngine.UI.Image>();
-            image.color = new Color(0.8f, 0.2f, 0.2f, 0.9f);
-            
-            RectTransform rect = buttonObj.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(300, 100);
-            rect.anchoredPosition = Vector2.zero;
-
-            GameObject textObj = new GameObject("Text");
-            textObj.transform.SetParent(buttonObj.transform, false);
-            UnityEngine.UI.Text text = textObj.AddComponent<UnityEngine.UI.Text>();
-            text.text = "Ganze Gruppe besiegt!\nSpiel neustarten";
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = Color.white;
-            text.fontSize = 24;
-
-            RectTransform textRect = textObj.GetComponent<RectTransform>();
-            textRect.anchorMin = Vector2.zero;
-            textRect.anchorMax = Vector2.one;
-            textRect.sizeDelta = Vector2.zero;
-
-            button.onClick.AddListener(() => {
-                UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-            });
-        }
     }
 }
