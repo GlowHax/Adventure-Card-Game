@@ -9,6 +9,7 @@ namespace AdventureCardGame.Cards
         private GameObject quad;
         private Camera renderCam;
         private Canvas canvas;
+        private Color targetEmission = Color.black;
 
         void Start()
         {
@@ -43,6 +44,12 @@ namespace AdventureCardGame.Cards
             Material litMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
             litMat.SetTexture("_BaseMap", rt);
             litMat.SetFloat("_Smoothness", 0.35f); // Let it shine slightly
+            
+            // Apply our stored targetEmission color
+            litMat.EnableKeyword("_EMISSION");
+            litMat.SetTexture("_EmissionMap", rt);
+            litMat.SetColor("_EmissionColor", targetEmission);
+            
             quad.GetComponent<MeshRenderer>().sharedMaterial = litMat;
             
             Destroy(quad.GetComponent<Collider>());
@@ -92,6 +99,19 @@ namespace AdventureCardGame.Cards
         void OnDestroy()
         {
             if (rt != null) rt.Release();
+        }
+
+        public void SetEmissionColor(Color color)
+        {
+            targetEmission = color;
+            if (quad != null)
+            {
+                Material mat = quad.GetComponent<MeshRenderer>().sharedMaterial;
+                mat.EnableKeyword("_EMISSION");
+                mat.SetTexture("_EmissionMap", rt);
+                mat.SetColor("_EmissionColor", color);
+                mat.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+            }
         }
     }
 }

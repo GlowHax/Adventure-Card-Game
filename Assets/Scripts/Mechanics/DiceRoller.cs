@@ -15,10 +15,37 @@ namespace AdventureCardGame.Mechanics
         // +X = 2, -X = 5
         // +Z = 3, -Z = 4
         
+        public bool isPlayerAttacking = true;
+        private Color glowColor;
+
         private void Awake()
         {
             rb = GetComponent<Rigidbody>();
             if (rb == null) rb = gameObject.AddComponent<Rigidbody>();
+        }
+
+        private void Start()
+        {
+            // Blau für Mitglieder, Dunkles Rot für Monster
+            glowColor = isPlayerAttacking ? new Color(0f, 0.5f, 1f) : new Color(0.8f, 0f, 0f);
+
+            var hm = FindObjectOfType<HealthLightManager>();
+            if (hm != null && hm.currentHealth <= 1)
+            {
+                MeshRenderer mr = GetComponentInChildren<MeshRenderer>();
+                if (mr != null)
+                {
+                    Material mat = new Material(mr.sharedMaterial);
+                    mat.SetColor("_BaseColor", Color.black);
+                    mat.EnableKeyword("_EMISSION");
+                    
+                    Texture2D emMap = Resources.Load<Texture2D>("DiceEmission");
+                    if (emMap != null) mat.SetTexture("_EmissionMap", emMap);
+                    
+                    mat.SetColor("_EmissionColor", glowColor * 2.5f); 
+                    mr.material = mat;
+                }
+            }
         }
 
         public void Roll(Vector3 spawnPosition, Vector3 forceDirection, float forceMagnitude)
@@ -157,11 +184,23 @@ namespace AdventureCardGame.Mechanics
             
             var tmp = textObj.AddComponent<TMPro.TextMeshPro>();
             tmp.text = result.ToString();
-            tmp.fontSize = 2f; // Made even smaller
-            tmp.color = new Color(1f, 0.8f, 0f); // Gold/Yellow
+            tmp.fontSize = 2f; 
+            tmp.color = glowColor; 
             tmp.alignment = TMPro.TextAlignmentOptions.Center;
             tmp.fontStyle = TMPro.FontStyles.Bold;
             
+            // Text glow and light
+            var hm = FindObjectOfType<HealthLightManager>();
+            if (hm != null && hm.currentHealth <= 1)
+            {
+                Light textLight = textObj.AddComponent<Light>();
+                textLight.type = LightType.Point;
+                textLight.color = glowColor;
+                textLight.range = 0.5f;
+                textLight.intensity = 1.0f;
+                textLight.shadows = LightShadows.None;
+            }
+
             Camera cam = Camera.main;
 
             float duration = 0.7f; // Animation is much faster now

@@ -360,6 +360,8 @@ namespace AdventureCardGame.Managers
             }
 
             Mechanics.DiceRoller roller = dice.GetComponent<Mechanics.DiceRoller>();
+            roller.isPlayerAttacking = isPlayerAttacking;
+            
             Vector3 spawnPos = centerPos + new Vector3(isPlayerAttacking ? -1.5f : 1.5f, 0.8f, -1.0f);
             Vector3 throwDir = new Vector3(isPlayerAttacking ? 1f : -1f, -0.2f, 1f).normalized;
             

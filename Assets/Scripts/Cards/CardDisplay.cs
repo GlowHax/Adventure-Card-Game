@@ -31,13 +31,43 @@ namespace AdventureCardGame.Cards
 
         public System.Collections.Generic.List<EquipmentCardData> equippedItems = new System.Collections.Generic.List<EquipmentCardData>();
 
+        private CanvasToRenderTexture c2rt;
+        private TMPro.TextMeshProUGUI hiddenEffectText;
+
         void Awake()
         {
+            c2rt = GetComponentInChildren<CanvasToRenderTexture>();
+
+            if (descriptionText != null && hiddenEffectText == null)
+            {
+                GameObject qObj = new GameObject("HiddenEffectText");
+                qObj.transform.SetParent(descriptionText.transform, false);
+                hiddenEffectText = qObj.AddComponent<TMPro.TextMeshProUGUI>();
+                
+                hiddenEffectText.rectTransform.anchorMin = Vector2.zero;
+                hiddenEffectText.rectTransform.anchorMax = Vector2.one;
+                hiddenEffectText.rectTransform.offsetMin = Vector2.zero;
+                hiddenEffectText.rectTransform.offsetMax = Vector2.zero;
+                
+                hiddenEffectText.text = "?";
+                hiddenEffectText.enableAutoSizing = true;
+                hiddenEffectText.fontSizeMin = 40f;
+                hiddenEffectText.fontSizeMax = 500f;
+                hiddenEffectText.alignment = TMPro.TextAlignmentOptions.Center;
+                hiddenEffectText.fontStyle = TMPro.FontStyles.Bold;
+                hiddenEffectText.color = new Color(1f, 1f, 1f, 0f); 
+                hiddenEffectText.gameObject.SetActive(false);
+            }
+
             // Dynamically add the RenderTexture converter to ensure all UI elements receive 3D lighting
             // without modifying prefabs manually.
             if (GetComponent<CanvasToRenderTexture>() == null)
             {
                 gameObject.AddComponent<CanvasToRenderTexture>();
+            }
+            if (GetComponent<CardGlowFrame>() == null)
+            {
+                gameObject.AddComponent<CardGlowFrame>();
             }
         }
 
@@ -95,6 +125,8 @@ namespace AdventureCardGame.Cards
             }
             UpdateDisplay();
         }
+
+
 
         public void UpdateDisplay()
         {
@@ -155,6 +187,22 @@ namespace AdventureCardGame.Cards
                 if (strengthContainer != null && eq.strengthBuff > 0) { strengthContainer.SetActive(true); if (strengthText != null) strengthText.text = "+" + eq.strengthBuff; }
                 if (speedContainer != null && eq.speedBuff > 0) { speedContainer.SetActive(true); if (speedText != null) speedText.text = "+" + eq.speedBuff; }
             }
+
+            if (hiddenEffectText != null && descriptionText != null)
+            {
+                bool hasEffect = !string.IsNullOrWhiteSpace(descriptionText.text);
+                hiddenEffectText.gameObject.SetActive(hasEffect);
+                
+                var hm = FindObjectOfType<HealthLightManager>();
+                if (hm != null && hm.currentHealth <= 1)
+                {
+                    hiddenEffectText.color = new Color(1f, 1f, 1f, 1f); // Stay visible in dark
+                }
+                else
+                {
+                    hiddenEffectText.color = new Color(1f, 1f, 1f, 0f); // Stay hidden in light
+                }
+            }
         }
         public void HighlightEffectText()
         {
@@ -200,6 +248,112 @@ namespace AdventureCardGame.Cards
             {
                 textComp.color = originalColor;
                 textComp.transform.localScale = originalScale;
+            }
+        }
+
+        void OnEnable()
+        {
+            HealthLightManager.OnHealthLevelChanged += HandleHealthChanged;
+            
+            // Check if we spawned into a critical health state
+            var hm = FindObjectOfType<HealthLightManager>();
+            if (hm != null && hm.currentHealth <= 1)
+            {
+                StartCoroutine(FadeToBlackRoutine(0f)); 
+            }
+        }
+
+        void OnDisable()
+        {
+            HealthLightManager.OnHealthLevelChanged -= HandleHealthChanged;
+        }
+
+        private void HandleHealthChanged(int currentHealth)
+        {
+            if (currentHealth == 1)
+            {
+                StartCoroutine(FadeToBlackRoutine(1.5f));
+            }
+        }
+
+        private System.Collections.IEnumerator FadeToBlackRoutine(float duration)
+        {
+            float elapsed = 0f;
+            
+            Image bgImage = GetComponent<Image>();
+            if (bgImage == null) bgImage = GetComponentInChildren<Image>();
+            
+            Color startBgColor = bgImage != null ? bgImage.color : Color.white;
+            Color targetBgColor = Color.black; // PERFECTLY black so it emits NO light and respects 3D lighting!
+            
+            // Holen der Container-Hintergründe, damit diese auch unsichtbar werden und NUR die Zahlen leuchten
+            Image[] containerImages = new Image[4];
+            if (speedContainer != null) containerImages[0] = speedContainer.GetComponent<Image>();
+            if (strengthContainer != null) containerImages[1] = strengthContainer.GetComponent<Image>();
+            if (healthContainer != null) containerImages[2] = healthContainer.GetComponent<Image>();
+            if (costContainer != null) containerImages[3] = costContainer.GetComponent<Image>();
+
+            // Turn the card's 3D Quad into a light emitter!
+            var c2rt = GetComponent<CanvasToRenderTexture>();
+            // We NO LONGER enable emission here, we wait until the card is black!
+            
+            while(duration > 0f && elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                
+                if (descriptionText != null) descriptionText.color = new Color(descriptionText.color.r, descriptionText.color.g, descriptionText.color.b, 1f - t);
+                if (nameText != null) nameText.color = new Color(nameText.color.r, nameText.color.g, nameText.color.b, 1f - t);
+                if (artworkImage != null) artworkImage.color = new Color(artworkImage.color.r, artworkImage.color.g, artworkImage.color.b, 1f - t);
+                if (bgImage != null && bgImage != artworkImage) bgImage.color = Color.Lerp(startBgColor, targetBgColor, t);
+                
+                for(int i = 0; i < 4; i++) {
+                    if (containerImages[i] != null) containerImages[i].color = new Color(containerImages[i].color.r, containerImages[i].color.g, containerImages[i].color.b, 1f - t);
+                }
+
+                yield return null;
+            }
+
+            // Snap to final values
+            if (descriptionText != null) descriptionText.color = new Color(descriptionText.color.r, descriptionText.color.g, descriptionText.color.b, 0f);
+            if (nameText != null) nameText.color = new Color(nameText.color.r, nameText.color.g, nameText.color.b, 0f);
+            if (artworkImage != null) artworkImage.color = new Color(artworkImage.color.r, artworkImage.color.g, artworkImage.color.b, 0f);
+            if (bgImage != null && bgImage != artworkImage) bgImage.color = targetBgColor;
+            
+            for(int i = 0; i < 4; i++) {
+                if (containerImages[i] != null) containerImages[i].color = new Color(containerImages[i].color.r, containerImages[i].color.g, containerImages[i].color.b, 0f);
+            }
+
+            if (duration > 0f)
+            {
+                yield return new WaitForSeconds(2.0f); // Dramatische Pause in völliger Dunkelheit!
+            }
+
+            // NOW: Slowly fade in the emission OR snap instantly
+            if (c2rt != null)
+            {
+                float glowDuration = duration > 0f ? 1.5f : 0f;
+                float glowElapsed = 0f;
+                
+                while (glowDuration > 0f && glowElapsed < glowDuration)
+                {
+                    glowElapsed += Time.deltaTime;
+                    float t = glowElapsed / glowDuration;
+                    c2rt.SetEmissionColor(Color.white * (2.5f * t));
+                    
+                    if (hiddenEffectText != null && hiddenEffectText.gameObject.activeSelf)
+                    {
+                        hiddenEffectText.color = new Color(1f, 1f, 1f, t);
+                    }
+                    
+                    yield return null;
+                }
+                c2rt.SetEmissionColor(Color.white * 2.5f);
+                
+                if (hiddenEffectText != null && hiddenEffectText.gameObject.activeSelf)
+                {
+                    hiddenEffectText.color = new Color(1f, 1f, 1f, 1f);
+                }
             }
         }
     }
